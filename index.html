@@ -51,7 +51,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
 .tag{font-size:14px;font-weight:800;letter-spacing:.08em;border-radius:999px;padding:4px 12px;color:var(--ink);background:var(--teal)}
 .tag.next{background:var(--amber)}.tag.locked{background:var(--fg)}
 .player{background:var(--card);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px}
-.player iframe{width:100%;height:170px;border:0;border-radius:12px;background:var(--bg2)}
+.player audio{width:100%;height:54px;border-radius:12px}
 .row{display:flex;flex-wrap:wrap;gap:10px}
 .note{font-size:17px;color:var(--dim)}
 /* chat */
@@ -97,7 +97,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
         <div id="lessons" class="lessons"></div>
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
-          <iframe id="frame" title="Lesson audio" allow="autoplay"></iframe>
+          <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
           <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>.</p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished this lesson</button>
@@ -203,10 +203,11 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
       box.appendChild(b);
     });
   }
+  function stopAudio(){var a=$('frame');try{a.pause()}catch(e){}a.removeAttribute('src');a.load()}
   function openPlayer(n){
     selected=n;confirmFinish=false;
     $('ptitle').textContent='Lesson '+n+': '+LESSONS[n-1][0];
-    $('frame').src='https://drive.google.com/file/d/'+LESSONS[n-1][1]+'/preview';
+    $('frame').src='audio/lesson'+n+'.m4a';
     $('drive').href='https://drive.google.com/file/d/'+LESSONS[n-1][1]+'/view';
     $('player').hidden=false;
     var f=$('finish');f.hidden=(n!==unlocked);f.textContent='I finished this lesson';
@@ -214,7 +215,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
     renderLessons();
     $('player').scrollIntoView({block:'nearest',behavior:'smooth'});
   }
-  $('closeP').addEventListener('click',function(){$('frame').src='about:blank';$('player').hidden=true;selected=0;renderLessons()});
+  $('closeP').addEventListener('click',function(){stopAudio();$('player').hidden=true;selected=0;renderLessons()});
   $('finish').addEventListener('click',function(){
     var f=$('finish');
     if(!confirmFinish){confirmFinish=true;f.textContent='Tap again to confirm lesson '+selected+' is finished';return}
@@ -223,7 +224,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
       var u=parseUnlocked(r.text);f.disabled=false;confirmFinish=false;
       if(u===null){$('finMsg').textContent='Could not save. Check your internet and tap again.';f.textContent='I finished this lesson';return}
       unlocked=u;renderLessons();
-      $('frame').src='about:blank';$('player').hidden=true;selected=0;renderLessons();
+      stopAudio();$('player').hidden=true;selected=0;renderLessons();
       banner(u>12?'':(u===12&&selected===0&&false?'':'Lesson saved. The next lesson is open.'),true);
     }).catch(function(){f.disabled=false;confirmFinish=false;$('finMsg').textContent='Could not save. Check your internet and tap again.';f.textContent='I finished this lesson'});
   });
