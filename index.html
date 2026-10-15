@@ -99,7 +99,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v5</span></p>
+          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v6</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished this lesson</button>
             <button id="closeP" class="ghost">Close player</button>
@@ -310,6 +310,8 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
     $('gate').hidden=true;$('app').hidden=false;
     loadChat();renderMsgs();renderLessons();showMins();
   }
+  /* ---- tester reset: add ?reset=1 to the link to clear this phone's chat and minutes ---- */
+  try{if(/[?&]reset=1/.test(location.search)){Object.keys(localStorage).forEach(function(k){if(/^(flchat_|fltime_)/.test(k))localStorage.removeItem(k)});for(var k in mem){if(/^(flchat_|fltime_)/.test(k))delete mem[k]}secs=0;history.replaceState(null,'',location.pathname)}}catch(e){}
   /* ---- boot ---- */
   if(code){
     post({code:code,action:'state'}).then(function(r){
