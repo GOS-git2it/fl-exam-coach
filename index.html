@@ -32,8 +32,13 @@ header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-conte
 .today{background:var(--card);border-radius:999px;padding:8px 18px;font-size:18px}
 .today b{color:var(--amber)}
 .cols{display:flex;flex-direction:column;gap:20px}
-@media(max-width:999px){.cols>section:nth-child(2){order:-1}.msgs{max-height:34vh;min-height:130px}}
-@media(min-width:1000px){.cols{flex-direction:row;align-items:flex-start}.cols>section{flex:1;min-width:0}}
+@media(max-width:999px){.msgs{max-height:40vh;min-height:130px}}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tabs button{background:var(--card);color:var(--fg);border:3px solid var(--line);font-size:22px}
+.tabs button[aria-selected=true]{background:var(--amber);color:var(--ink);border-color:var(--amber)}
+.tabs .dot{display:inline-block;background:var(--teal);color:var(--ink);border-radius:999px;font-size:14px;padding:2px 10px;margin-left:8px;vertical-align:middle}
+.sub{font-size:20px;color:var(--fg);margin-top:4px}
+@media(max-width:999px){h1{font-size:28px}header.top{gap:8px}.wrap{gap:14px}}
 section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
 [hidden]{display:none!important}
 /* gate */
@@ -91,23 +96,27 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
       <div><span class="pill t">FL Exam 0220</span><h1>Your FL Exam Coach</h1></div>
       <div class="today" aria-live="off">Studied today: <b id="mins">0</b> min</div>
     </header>
+    <div class="tabs" role="tablist">
+      <button id="tabT" type="button" role="tab" aria-selected="true">Tutor</button>
+      <button id="tabL" type="button" role="tab" aria-selected="false">Lessons<span id="newDot" class="dot" hidden>NEW</span></button>
+    </div>
     <div class="cols">
-      <section class="panel" aria-labelledby="lh">
-        <h2 id="lh">Your 12 lessons</h2>
-        <p class="note">Tap Start with your tutor. Then tap the lesson marked NEXT and listen. Come back to your tutor and tap Ready.</p>
-        <div id="lessons" class="lessons"></div>
+      <section id="pnlL" class="panel" aria-labelledby="lh" hidden>
+        <h2 id="lh">Your lessons</h2>
+        <p class="note">Listen here. Then tap I finished listening. Your tutor quizzes you next.</p>
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v8</span></p>
+          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v9</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
-            <button id="closeP" class="ghost">Close player</button>
           </div>
           <p id="finMsg" class="note" role="status"></p>
         </div>
+        <div id="lessons" class="lessons"></div>
+        <p id="lockNote" class="note"></p>
       </section>
-      <section class="panel" aria-labelledby="th">
+      <section id="pnlT" class="panel" aria-labelledby="th">
         <h2 id="th">Your tutor</h2>
         <div id="msgs" class="msgs" aria-live="polite"></div>
         <div id="banner" hidden></div>
@@ -122,7 +131,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
           <input id="msg" type="text" placeholder="Type your answer here" autocomplete="off">
           <button id="sendBtn" type="submit">Send</button>
         </form>
-        <p class="note">Start: the tutor names today's lesson. Ready: quiz time after you listen. Stop for today: saves your daily log.</p>
+        <p class="note">Start: the tutor names today's lesson. Then open the Lessons tab and listen. Come back here and tap Ready for your quiz. Stop for today: saves your daily log.</p>
       </section>
     </div>
   </div>
@@ -191,20 +200,31 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
   /* ---- lessons ---- */
   function renderLessons(){
     var box=$('lessons');box.innerHTML='';
-    LESSONS.forEach(function(l,i){
-      var n=i+1,st=n<unlocked?'done':(n===unlocked?'next':'locked');
+    var order=[unlocked];for(var d=unlocked-1;d>=1;d--)order.push(d);
+    order.forEach(function(n){
+      var st=n<unlocked?'done':'next',l=LESSONS[n-1];
       var b=document.createElement('button');b.type='button';
       b.className='lesson '+st+(selected===n?' sel':'');
-      if(st==='locked'){b.setAttribute('aria-disabled','true')}
-      b.innerHTML='<span class="n">'+n+'</span><span class="t"></span><span class="tag '+st+'">'+(st==='done'?'DONE':st==='next'?'NEXT':'LOCKED')+'</span>';
+      b.innerHTML='<span class="n">'+n+'</span><span class="t"></span><span class="tag '+st+'">'+(st==='done'?'DONE':'NEXT')+'</span>';
       b.querySelector('.t').textContent=l[0];
-      b.addEventListener('click',function(){
-        if(st==='locked'){banner('Lesson '+n+' is locked. Finish lesson '+unlocked+' first.',false);return}
-        openPlayer(n);
-      });
+      b.addEventListener('click',function(){openPlayer(n)});
       box.appendChild(b);
     });
+    var left=12-unlocked;
+    $('lockNote').textContent=left>0?(left+' more lesson'+(left>1?'s':'')+' locked. Pass the quiz to open the next one.'):'All 12 lessons are open.';
   }
+  /* ---- tabs ---- */
+  var tab='tutor';
+  function showTab(t,noScroll){
+    tab=t;
+    $('pnlT').hidden=(t!=='tutor');$('pnlL').hidden=(t!=='lessons');
+    $('tabT').setAttribute('aria-selected',t==='tutor');$('tabL').setAttribute('aria-selected',t==='lessons');
+    if(t==='lessons'){$('newDot').hidden=true;if(!selected)openPlayer(unlocked,true)}
+    else{try{$('frame').pause()}catch(e){}}
+    if(!noScroll){try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){window.scrollTo(0,0)}}
+  }
+  $('tabT').addEventListener('click',function(){showTab('tutor')});
+  $('tabL').addEventListener('click',function(){showTab('lessons')});
   /* Lock-screen and headphone controls: title, show name, artwork, skip buttons. */
   function setLockScreen(n){
     if(!('mediaSession' in navigator)||typeof MediaMetadata==='undefined')return;
@@ -221,7 +241,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
   }
   ['loadedmetadata','play','playing','pause'].forEach(function(e){$('frame').addEventListener(e,function(){if(selected){setLockScreen(selected);setTimeout(function(){if(selected)setLockScreen(selected)},800)}})});
   function stopAudio(){var a=$('frame');try{a.pause()}catch(e){}a.removeAttribute('src');a.load()}
-  function openPlayer(n){
+  function openPlayer(n,quiet){
     selected=n;confirmFinish=false;
     $('ptitle').textContent='Lesson '+n+': '+LESSONS[n-1][0];
     $('frame').src='audio/lesson'+n+'.m4a';
@@ -231,14 +251,12 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
     var f=$('finish');f.hidden=(n!==unlocked);f.textContent='I finished listening';
     $('finMsg').textContent=(n===unlocked)?'Listen first. Then tap the button above. Your tutor will quiz you next.':'You already passed this one. Listen again any time.';
     renderLessons();
-    $('player').scrollIntoView({block:'nearest',behavior:'smooth'});
   }
-  $('closeP').addEventListener('click',function(){stopAudio();$('player').hidden=true;selected=0;renderLessons()});
-  $('finish').addEventListener('click',function(){
+    $('finish').addEventListener('click',function(){
     var n=selected;
     stopAudio();$('player').hidden=true;selected=0;renderLessons();
+    showTab('tutor');
     banner('Nice. Now tap Ready. Your tutor will quiz you on Lesson '+n+'.',true,null,true);
-    try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){window.scrollTo(0,0)}
   });
   /* Next lesson opens only after the tutor says the lesson is passed. */
   function showUnlock(){
@@ -249,9 +267,9 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
     post({code:code,action:'done',n:String(n)}).then(function(){return post({code:code,action:'state'})}).then(function(r){
       var u=parseUnlocked(r.text);b.disabled=false;
       if(u===null){banner('Could not save. Check your internet and tap again.',false);return}
-      set('flpass_'+n,'');unlocked=u;b.hidden=true;renderLessons();
-      banner(n>=12?'All 12 lessons passed. Great work. Tap Start to review.':'Lesson '+n+' complete. Lesson '+u+' is open. Tap Start for the next one.',true,null,true);
-      try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){window.scrollTo(0,0)}
+      set('flpass_'+n,'');unlocked=u;selected=0;b.hidden=true;renderLessons();
+      banner(n>=12?'All 12 lessons passed. Great work. Tap Start to review.':'Lesson '+n+' complete. Lesson '+u+' is open. Tap Start. Then open the Lessons tab.',true,null,true);
+      $('newDot').hidden=false;showTab('tutor');
     }).catch(function(){b.disabled=false;banner('Could not save. Check your internet and tap again.',false)});
   });
 
@@ -299,7 +317,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
         logLine(m[0].trim());
       }
       if(reply){msgs.push({r:'coach',t:reply})}
-      if(/(lesson|unit) passed/i.test(reply)){set('flpass_'+unlocked,'1');showUnlock();banner('Great job. Tap the button below to open the next lesson.',true,null,true)}
+      if(/(lesson|unit) passed/i.test(reply)){set('flpass_'+unlocked,'1');showUnlock();banner('Great job. Tap the green button below to open the next lesson.',true,null,true)}
       save();renderMsgs();
     }).catch(function(){
       msgs.splice(msgs.indexOf(wait),1);msgs.push({r:'sys',t:'No connection. Check your internet, then send again.'});renderMsgs();
@@ -319,7 +337,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
 
   function openApp(){
     $('gate').hidden=true;$('app').hidden=false;
-    loadChat();renderMsgs();renderLessons();showMins();if(get('flpass_'+unlocked)==='1')showUnlock();
+    showTab('tutor',true);loadChat();renderMsgs();renderLessons();showMins();if(get('flpass_'+unlocked)==='1')showUnlock();
   }
   /* ---- tester reset: add ?reset=1 to the link to clear this phone's chat and minutes ---- */
   try{if(/[?&]reset=1/.test(location.search)){Object.keys(localStorage).forEach(function(k){if(/^(flchat_|fltime_|flpass_)/.test(k))localStorage.removeItem(k)});for(var k in mem){if(/^(flchat_|fltime_|flpass_)/.test(k))delete mem[k]}secs=0;history.replaceState(null,'',location.pathname)}}catch(e){}
