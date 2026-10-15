@@ -98,7 +98,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v3</span></p>
+          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v4</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished this lesson</button>
             <button id="closeP" class="ghost">Close player</button>
@@ -208,14 +208,16 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
     if(!('mediaSession' in navigator)||typeof MediaMetadata==='undefined')return;
     try{
       var a=$('frame');
-      navigator.mediaSession.metadata=new MediaMetadata({title:'Lesson '+n+': '+LESSONS[n-1][0],artist:'FL Exam Coach',album:'Florida General Lines 0220',artwork:[{src:'audio/cover.png',sizes:'512x512',type:'image/png'}]});
+      navigator.mediaSession.metadata=new MediaMetadata({title:'Lesson '+n+': '+LESSONS[n-1][0],artist:'FL Exam Coach',album:'Florida General Lines 0220',artwork:[96,128,192,256,384,512].map(function(z){return {src:new URL('audio/cover.png',location.href).href,sizes:z+'x'+z,type:'image/png'}})});
+      navigator.mediaSession.playbackState=a.paused?'paused':'playing';
+      document.title='Lesson '+n+': '+LESSONS[n-1][0];
       navigator.mediaSession.setActionHandler('play',function(){a.play()});
       navigator.mediaSession.setActionHandler('pause',function(){a.pause()});
       navigator.mediaSession.setActionHandler('seekbackward',function(){a.currentTime=Math.max(0,a.currentTime-15)});
       navigator.mediaSession.setActionHandler('seekforward',function(){a.currentTime=Math.min(a.duration||1e9,a.currentTime+15)});
     }catch(e){}
   }
-  ['loadedmetadata','play','playing'].forEach(function(e){$('frame').addEventListener(e,function(){if(selected)setLockScreen(selected)})});
+  ['loadedmetadata','play','playing','pause'].forEach(function(e){$('frame').addEventListener(e,function(){if(selected){setLockScreen(selected);setTimeout(function(){if(selected)setLockScreen(selected)},800)}})});
   function stopAudio(){var a=$('frame');try{a.pause()}catch(e){}a.removeAttribute('src');a.load()}
   function openPlayer(n){
     selected=n;confirmFinish=false;
