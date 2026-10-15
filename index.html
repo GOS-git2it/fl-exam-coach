@@ -151,7 +151,9 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
   function set(k,v){mem[k]=v;sset(k,v)}
 
   var code=get('flcode')||'', unlocked=1, selected=0, msgs=[], busy=false, confirmFinish=false, lastLine='';
-  var today=new Date().toISOString().slice(0,10);
+  /* Study day rolls over at 3 AM local time, so late-night study stays on one day. */
+  function studyDay(){var d=new Date(Date.now()-3*3600*1000),p=function(n){return (n<10?'0':'')+n};return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
+  var today=studyDay();
   var secs=parseInt(get('fltime_'+today)||'0',10)||0, lastActive=Date.now();
 
   function post(params){
@@ -266,7 +268,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
   }
   function logLine(line){
     if(line===lastLine)return;
-    post({code:code,action:'log',line:line}).then(function(r){
+    post({code:code,action:'log',line:line,day:today}).then(function(r){
       if(r.status===200&&/saved/.test(r.text)){lastLine=line;banner('Saved to your daily log. Nice work today.',true)}
       else banner('Your log did not save.',false,function(){logLine(line)});
     }).catch(function(){banner('Your log did not save. Check your internet.',false,function(){logLine(line)})});
