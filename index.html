@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FL Exam Coach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito+Sans:wght@600;700;800&display=swap">
+<style>
+/* Layout: one column on phones; lessons left and tutor right from 1000px. Dark navy, heavy text, words next to colors. */
+:root{
+  --bg:#14213D; --bg2:#0F1A33; --card:#22345E; --line:#3A4F7E;
+  --fg:#F5F7FA; --dim:#C9D6EA; --teal:#7FD6D0; --amber:#F2B56B; --ink:#0F1A33; --bad:#FFB4A8;
+  --display:'Fredoka','Trebuchet MS',Arial,sans-serif;
+  --body:'Nunito Sans','Segoe UI',Arial,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-weight:700;font-size:20px;line-height:1.4;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;line-height:1.15;text-wrap:balance}
+h1{font-size:38px}h2{font-size:30px}h3{font-size:24px}
+p{margin:0}
+button{font:inherit;font-weight:800;cursor:pointer;border:0;border-radius:14px;min-height:56px;padding:12px 20px;color:var(--ink);background:var(--amber)}
+button:focus-visible,input:focus-visible,a:focus-visible,.lesson:focus-visible{outline:4px solid var(--teal);outline-offset:2px}
+button[disabled]{opacity:.55;cursor:not-allowed}
+button.alt{background:var(--teal)}
+button.ghost{background:transparent;color:var(--fg);border:2px solid var(--line)}
+a{color:var(--teal)}
+.pill{display:inline-block;font-weight:800;font-size:15px;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:5px 14px;color:var(--ink)}
+.pill.t{background:var(--teal)}.pill.a{background:var(--amber)}.pill.w{background:var(--fg)}
+header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.today{background:var(--card);border-radius:999px;padding:8px 18px;font-size:18px}
+.today b{color:var(--amber)}
+.cols{display:flex;flex-direction:column;gap:20px}
+@media(min-width:1000px){.cols{flex-direction:row;align-items:flex-start}.cols>section{flex:1;min-width:0}}
+section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+/* gate */
+#gate{max-width:560px;margin:8vh auto 0;display:flex;flex-direction:column;gap:18px}
+#gate input{font:inherit;font-weight:800;font-size:24px;min-height:64px;border-radius:14px;border:3px solid var(--line);background:var(--bg2);color:var(--fg);padding:10px 16px;width:100%;letter-spacing:.06em}
+.err{color:var(--bad)}
+/* lessons */
+.lessons{display:flex;flex-direction:column;gap:10px}
+.lesson{display:flex;gap:14px;align-items:center;background:var(--card);border:2px solid transparent;border-radius:16px;padding:12px 14px;text-align:left;width:100%;color:var(--fg);min-height:72px}
+.lesson .n{font-family:var(--display);font-size:34px;min-width:44px;text-align:center;color:var(--amber)}
+.lesson .t{flex:1;min-width:0;font-size:19px;line-height:1.25}
+.lesson.next{border-color:var(--amber)}
+.lesson.locked{opacity:1;cursor:not-allowed;background:var(--bg)}
+.lesson.locked .t,.lesson.locked .n{color:var(--dim)}
+.lesson.sel{outline:3px solid var(--teal);outline-offset:2px}
+.tag{font-size:14px;font-weight:800;letter-spacing:.08em;border-radius:999px;padding:4px 12px;color:var(--ink);background:var(--teal)}
+.tag.next{background:var(--amber)}.tag.locked{background:var(--fg)}
+.player{background:var(--card);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.player iframe{width:100%;height:170px;border:0;border-radius:12px;background:var(--bg2)}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.note{font-size:17px;color:var(--dim)}
+/* chat */
+.msgs{display:flex;flex-direction:column;gap:10px;max-height:52vh;min-height:220px;overflow-y:auto;padding:4px}
+.m{max-width:92%;padding:12px 16px;border-radius:16px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:19px;line-height:1.4}
+.m.coach{background:var(--card);align-self:flex-start}
+.m.me{background:var(--teal);color:var(--ink);align-self:flex-end}
+.m.sys{background:transparent;border:2px dashed var(--line);color:var(--dim);align-self:stretch;text-align:center;max-width:100%}
+.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.quick button{padding:10px 6px;font-size:18px}
+.send{display:flex;gap:8px}
+.send input{flex:1;min-width:0;font:inherit;font-weight:700;font-size:19px;min-height:56px;border-radius:14px;border:3px solid var(--line);background:var(--bg);color:var(--fg);padding:8px 14px}
+.banner{border-radius:14px;padding:12px 16px;background:var(--amber);color:var(--ink);font-weight:800}
+.banner.ok{background:var(--teal)}
+@media(prefers-reduced-motion:no-preference){.m{animation:pop .15s ease-out}@keyframes pop{from{transform:translateY(4px);opacity:.5}to{transform:none;opacity:1}}}
+</style>
+</head><body>
+
+
+<div class="wrap">
+  <div id="gate" hidden>
+    <span class="pill t">FL Exam 0220</span>
+    <h1>Your FL Exam Coach</h1>
+    <p>Type the access code GiO gave you. You only do this once on this phone.</p>
+    <form id="gateForm" autocomplete="off">
+      <label for="code" class="note">Access code</label>
+      <input id="code" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="MAGIC-XXXX">
+      <p id="gateErr" class="err" role="alert" hidden></p>
+      <p style="height:12px"></p>
+      <button id="gateBtn" type="submit" class="alt">Open my coach</button>
+    </form>
+  </div>
+
+  <div id="app" hidden>
+    <header class="top">
+      <div><span class="pill t">FL Exam 0220</span><h1>Your FL Exam Coach</h1></div>
+      <div class="today" aria-live="off">Studied today: <b id="mins">0</b> min</div>
+    </header>
+    <div class="cols">
+      <section class="panel" aria-labelledby="lh">
+        <h2 id="lh">Your 12 lessons</h2>
+        <p class="note">Tap the lesson marked NEXT. Listen. Then use the tutor on the right.</p>
+        <div id="lessons" class="lessons"></div>
+        <div id="player" class="player" hidden>
+          <h3 id="ptitle"></h3>
+          <iframe id="frame" title="Lesson audio" allow="autoplay"></iframe>
+          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>.</p>
+          <div class="row">
+            <button id="finish" class="alt" hidden>I finished this lesson</button>
+            <button id="closeP" class="ghost">Close player</button>
+          </div>
+          <p id="finMsg" class="note" role="status"></p>
+        </div>
+      </section>
+      <section class="panel" aria-labelledby="th">
+        <h2 id="th">Your tutor</h2>
+        <div id="msgs" class="msgs" aria-live="polite"></div>
+        <div id="banner" hidden></div>
+        <div class="quick">
+          <button id="qStart" class="alt">Start</button>
+          <button id="qReady">Ready</button>
+          <button id="qStop" class="ghost">Stop for today</button>
+        </div>
+        <form id="sendForm" class="send" autocomplete="off">
+          <label for="msg" hidden>Your message</label>
+          <input id="msg" type="text" placeholder="Type your answer here" autocomplete="off">
+          <button id="sendBtn" type="submit">Send</button>
+        </form>
+        <p class="note">Start: the tutor names today's lesson. Ready: quiz time after you listen. Stop for today: saves your daily log.</p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var API='https://hook.us2.make.com/aky1huu3r7o87llxlajly1chy4zr7br2';
+  var LESSONS=[
+    ['Cancellation, Nonrenewal, Claims','1JTfRm68-5elAHZSAsOARHV4KK-kpqFj3'],
+    ['Property Rules','1M6KSyLmwFILto-V3o1LQaTfv99OeC5Tx'],
+    ['Insurers and Auto','1g1_U5t1A5tNpDD26rqJDi0RrZNU6_hrk'],
+    ['Casualty: General Liability','1sqvJTy22WikYkPsjS5OpVITM1GxwLRbz'],
+    ['Casualty: Auto, Workers Comp, Crime','1u7vP8xMACYTZSweHcLMfMpGCLjQbmMX3'],
+    ['Casualty: Bonds, Liability, Umbrella','1ATvHl-9sDmamx0xbojWX2i6Xt7wZVp6e'],
+    ['Regulators, Licensing, Duties','1X-lRIiUZbNC2u_8mh4Ux4eCk7wm-s0UN'],
+    ['Unfair Practices','1JwMI62VYhGtJtwOuUWI2wymmE9xEaw7E'],
+    ['Property: Policy Types','1pLIrTrXtz8JeRPH-OVOwK7M-UVw6EpHp'],
+    ['FL Law: Health','1dgerRngrxABPMJS-rAsLNEbYZevcff2i'],
+    ['Property: Terms and Provisions','102lU7QBWHSiN--3QitXepQiWYVtgNUU4'],
+    ['Casualty: Terms and Provisions','1C0s_R5-EBvH_dHwIGTpQtSkh1y3jThni']
+  ];
+  var $=function(id){return document.getElementById(id)};
+  function sget(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  function sset(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  var mem={}; // fallback if storage is blocked
+  function get(k){var v=sget(k);return v===null?(mem[k]||null):v}
+  function set(k,v){mem[k]=v;sset(k,v)}
+
+  var code=get('flcode')||'', unlocked=1, selected=0, msgs=[], busy=false, confirmFinish=false, lastLine='';
+  var today=new Date().toISOString().slice(0,10);
+  var secs=parseInt(get('fltime_'+today)||'0',10)||0, lastActive=Date.now();
+
+  function post(params){
+    var body=new URLSearchParams(params);
+    return fetch(API,{method:'POST',body:body}).then(function(r){return r.text().then(function(t){return {status:r.status,text:t}})});
+  }
+  function parseUnlocked(t){var m=/unlocked=(\d+)/.exec(t);return m?Math.max(1,Math.min(12,parseInt(m[1],10))):null}
+
+  /* ---- timer: counts time the page is open and in use ---- */
+  ['click','keydown','touchstart','scroll'].forEach(function(e){window.addEventListener(e,function(){lastActive=Date.now()},{passive:true})});
+  setInterval(function(){
+    if(!code||document.hidden)return;
+    var playing=!$('player').hidden;
+    if(playing||Date.now()-lastActive<180000){secs+=5;set('fltime_'+today,String(secs));showMins()}
+  },5000);
+  function mins(){return Math.round(secs/60)}
+  function showMins(){$('mins').textContent=mins()}
+
+  /* ---- gate ---- */
+  function showGate(msg){$('app').hidden=true;$('gate').hidden=false;var e=$('gateErr');if(msg){e.textContent=msg;e.hidden=false}else e.hidden=true}
+  $('gateForm').addEventListener('submit',function(ev){
+    ev.preventDefault();
+    var c=$('code').value.trim(); if(!c){showGate('Type the code first.');return}
+    $('gateBtn').disabled=true;
+    post({code:c,action:'state'}).then(function(r){
+      $('gateBtn').disabled=false;
+      if(r.status===401){showGate('That code is not right. Check the message from GiO and try again.');return}
+      var u=parseUnlocked(r.text); if(u===null){showGate('Could not connect. Check your internet and try again.');return}
+      code=c;set('flcode',c);unlocked=u;openApp();
+    }).catch(function(){$('gateBtn').disabled=false;showGate('Could not connect. Check your internet and try again.')});
+  });
+
+  /* ---- lessons ---- */
+  function renderLessons(){
+    var box=$('lessons');box.innerHTML='';
+    LESSONS.forEach(function(l,i){
+      var n=i+1,st=n<unlocked?'done':(n===unlocked?'next':'locked');
+      var b=document.createElement('button');b.type='button';
+      b.className='lesson '+st+(selected===n?' sel':'');
+      if(st==='locked'){b.setAttribute('aria-disabled','true')}
+      b.innerHTML='<span class="n">'+n+'</span><span class="t"></span><span class="tag '+st+'">'+(st==='done'?'DONE':st==='next'?'NEXT':'LOCKED')+'</span>';
+      b.querySelector('.t').textContent=l[0];
+      b.addEventListener('click',function(){
+        if(st==='locked'){banner('Lesson '+n+' is locked. Finish lesson '+unlocked+' first.',false);return}
+        openPlayer(n);
+      });
+      box.appendChild(b);
+    });
+  }
+  function openPlayer(n){
+    selected=n;confirmFinish=false;
+    $('ptitle').textContent='Lesson '+n+': '+LESSONS[n-1][0];
+    $('frame').src='https://drive.google.com/file/d/'+LESSONS[n-1][1]+'/preview';
+    $('drive').href='https://drive.google.com/file/d/'+LESSONS[n-1][1]+'/view';
+    $('player').hidden=false;
+    var f=$('finish');f.hidden=(n!==unlocked);f.textContent='I finished this lesson';
+    $('finMsg').textContent=(n===unlocked)?'Listen, take the quiz with your tutor, then tap the button above.':'You already finished this one. Listen again any time.';
+    renderLessons();
+    $('player').scrollIntoView({block:'nearest',behavior:'smooth'});
+  }
+  $('closeP').addEventListener('click',function(){$('frame').src='about:blank';$('player').hidden=true;selected=0;renderLessons()});
+  $('finish').addEventListener('click',function(){
+    var f=$('finish');
+    if(!confirmFinish){confirmFinish=true;f.textContent='Tap again to confirm lesson '+selected+' is finished';return}
+    f.disabled=true;
+    post({code:code,action:'done',n:String(selected)}).then(function(){return post({code:code,action:'state'})}).then(function(r){
+      var u=parseUnlocked(r.text);f.disabled=false;confirmFinish=false;
+      if(u===null){$('finMsg').textContent='Could not save. Check your internet and tap again.';f.textContent='I finished this lesson';return}
+      unlocked=u;renderLessons();
+      $('frame').src='about:blank';$('player').hidden=true;selected=0;renderLessons();
+      banner(u>12?'':(u===12&&selected===0&&false?'':'Lesson saved. The next lesson is open.'),true);
+    }).catch(function(){f.disabled=false;confirmFinish=false;$('finMsg').textContent='Could not save. Check your internet and tap again.';f.textContent='I finished this lesson'});
+  });
+
+  /* ---- chat ---- */
+  function renderMsgs(){
+    var box=$('msgs');box.innerHTML='';
+    if(!msgs.length){var s=document.createElement('div');s.className='m sys';s.textContent='Tap Start. Your tutor names today\'s lesson.';box.appendChild(s)}
+    msgs.forEach(function(m){var d=document.createElement('div');d.className='m '+(m.r==='me'?'me':m.r==='sys'?'sys':'coach');d.textContent=m.t;box.appendChild(d)});
+    box.scrollTop=box.scrollHeight;
+  }
+  function save(){var keep=msgs.filter(function(m){return m.r!=='sys'}).slice(-30);set('flchat_'+today,JSON.stringify(keep))}
+  function loadChat(){try{msgs=JSON.parse(get('flchat_'+today)||'[]')||[]}catch(e){msgs=[]}}
+  function banner(t,ok,retry){
+    var b=$('banner');if(!t){b.hidden=true;return}
+    b.className='banner'+(ok?' ok':'');b.textContent=t;b.hidden=false;
+    if(retry){var r=document.createElement('button');r.textContent='Try again';r.style.marginLeft='12px';r.style.minHeight='44px';r.addEventListener('click',retry);b.appendChild(r)}
+    else setTimeout(function(){if(b.textContent===t)b.hidden=true},9000);
+  }
+  function setBusy(v){busy=v;['qStart','qReady','qStop','sendBtn','msg'].forEach(function(i){$(i).disabled=v})}
+  function transcript(){
+    return msgs.filter(function(m){return m.r!=='sys'}).slice(-24).map(function(m){return (m.r==='me'?'Student: ':'Coach: ')+m.t}).join('\n');
+  }
+  function sendText(text){
+    text=(text||'').trim();if(!text||busy)return;
+    msgs.push({r:'me',t:text});save();renderMsgs();setBusy(true);
+    var wait={r:'sys',t:'Your tutor is typing...'};msgs.push(wait);renderMsgs();
+    post({code:code,action:'chat',minutes:String(mins()),transcript:transcript()}).then(function(r){
+      msgs.splice(msgs.indexOf(wait),1);
+      if(r.status===401){code='';set('flcode','');showGate('Your code stopped working. Type it again.');return}
+      var reply=(r.text||'').trim()||'The tutor did not answer. Tap the button again.';
+      var m=/^DAILY\|.*$/m.exec(reply);
+      if(m){
+        reply=reply.replace(m[0],'').replace(/\n{3,}/g,'\n\n').trim();
+        logLine(m[0].trim());
+      }
+      if(reply){msgs.push({r:'coach',t:reply})}
+      save();renderMsgs();
+    }).catch(function(){
+      msgs.splice(msgs.indexOf(wait),1);msgs.push({r:'sys',t:'No connection. Check your internet, then send again.'});renderMsgs();
+    }).then(function(){setBusy(false);$('msg').focus&&0});
+  }
+  function logLine(line){
+    if(line===lastLine)return;
+    post({code:code,action:'log',line:line}).then(function(r){
+      if(r.status===200&&/saved/.test(r.text)){lastLine=line;banner('Saved to your daily log. Nice work today.',true)}
+      else banner('Your log did not save.',false,function(){logLine(line)});
+    }).catch(function(){banner('Your log did not save. Check your internet.',false,function(){logLine(line)})});
+  }
+  $('qStart').addEventListener('click',function(){sendText('start')});
+  $('qReady').addEventListener('click',function(){sendText('ready')});
+  $('qStop').addEventListener('click',function(){sendText('stop')});
+  $('sendForm').addEventListener('submit',function(e){e.preventDefault();var v=$('msg').value;$('msg').value='';sendText(v)});
+
+  function openApp(){
+    $('gate').hidden=true;$('app').hidden=false;
+    loadChat();renderMsgs();renderLessons();showMins();
+  }
+  /* ---- boot ---- */
+  if(code){
+    post({code:code,action:'state'}).then(function(r){
+      var u=parseUnlocked(r.text);
+      if(r.status===401){code='';set('flcode','');showGate();return}
+      if(u===null){unlocked=1}else unlocked=u;
+      openApp();
+    }).catch(function(){openApp()});
+  } else showGate();
+})();
+</script>
+
+</body></html>
