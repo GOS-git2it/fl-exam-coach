@@ -32,6 +32,7 @@ header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-conte
 .today{background:var(--card);border-radius:999px;padding:8px 18px;font-size:18px}
 .today b{color:var(--amber)}
 .cols{display:flex;flex-direction:column;gap:20px}
+@media(max-width:999px){.cols>section:nth-child(2){order:-1}.msgs{max-height:34vh;min-height:130px}}
 @media(min-width:1000px){.cols{flex-direction:row;align-items:flex-start}.cols>section{flex:1;min-width:0}}
 section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
 [hidden]{display:none!important}
@@ -93,12 +94,12 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
     <div class="cols">
       <section class="panel" aria-labelledby="lh">
         <h2 id="lh">Your 12 lessons</h2>
-        <p class="note">Tap the lesson marked NEXT. Listen. Then use the tutor on the right.</p>
+        <p class="note">Tap Start with your tutor. Then tap the lesson marked NEXT and listen. Come back to your tutor and tap Ready.</p>
         <div id="lessons" class="lessons"></div>
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v4</span></p>
+          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v5</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished this lesson</button>
             <button id="closeP" class="ghost">Close player</button>
