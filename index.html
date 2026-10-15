@@ -99,9 +99,9 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v7</span></p>
+          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v8</span></p>
           <div class="row">
-            <button id="finish" class="alt" hidden>I finished this lesson</button>
+            <button id="finish" class="alt" hidden>I finished listening</button>
             <button id="closeP" class="ghost">Close player</button>
           </div>
           <p id="finMsg" class="note" role="status"></p>
@@ -111,6 +111,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
         <h2 id="th">Your tutor</h2>
         <div id="msgs" class="msgs" aria-live="polite"></div>
         <div id="banner" hidden></div>
+        <button id="unlockBtn" class="alt" hidden>Open next lesson</button>
         <div class="quick">
           <button id="qStart" class="alt">Start</button>
           <button id="qReady">Ready</button>
@@ -227,24 +228,31 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
     $('drive').href='https://drive.google.com/file/d/'+LESSONS[n-1][1]+'/view';
     $('player').hidden=false;
     setLockScreen(n);
-    var f=$('finish');f.hidden=(n!==unlocked);f.textContent='I finished this lesson';
-    $('finMsg').textContent=(n===unlocked)?'Listen, take the quiz with your tutor, then tap the button above.':'You already finished this one. Listen again any time.';
+    var f=$('finish');f.hidden=(n!==unlocked);f.textContent='I finished listening';
+    $('finMsg').textContent=(n===unlocked)?'Listen first. Then tap the button above. Your tutor will quiz you next.':'You already passed this one. Listen again any time.';
     renderLessons();
     $('player').scrollIntoView({block:'nearest',behavior:'smooth'});
   }
   $('closeP').addEventListener('click',function(){stopAudio();$('player').hidden=true;selected=0;renderLessons()});
   $('finish').addEventListener('click',function(){
-    var f=$('finish');
-    if(!confirmFinish){confirmFinish=true;f.textContent='Tap again to confirm lesson '+selected+' is finished';return}
-    f.disabled=true;
-    post({code:code,action:'done',n:String(selected)}).then(function(){return post({code:code,action:'state'})}).then(function(r){
-      var u=parseUnlocked(r.text);f.disabled=false;confirmFinish=false;var finishedN=selected;
-      if(u===null){$('finMsg').textContent='Could not save. Check your internet and tap again.';f.textContent='I finished this lesson';return}
-      unlocked=u;renderLessons();
-      stopAudio();$('player').hidden=true;selected=0;renderLessons();
-      banner(finishedN>=12?'All 12 lessons finished. Great work. Tap Start to review.':'Lesson '+finishedN+' saved. Lesson '+u+' is open. Tap Start to hear what is next.',true);
+    var n=selected;
+    stopAudio();$('player').hidden=true;selected=0;renderLessons();
+    banner('Nice. Now tap Ready. Your tutor will quiz you on Lesson '+n+'.',true,null,true);
+    try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){window.scrollTo(0,0)}
+  });
+  /* Next lesson opens only after the tutor says the lesson is passed. */
+  function showUnlock(){
+    var b=$('unlockBtn');b.textContent=unlocked<12?'Lesson '+unlocked+' passed. Open Lesson '+(unlocked+1):'Lesson 12 passed. Finish the course';b.hidden=false;
+  }
+  $('unlockBtn').addEventListener('click',function(){
+    var b=$('unlockBtn'),n=unlocked;b.disabled=true;
+    post({code:code,action:'done',n:String(n)}).then(function(){return post({code:code,action:'state'})}).then(function(r){
+      var u=parseUnlocked(r.text);b.disabled=false;
+      if(u===null){banner('Could not save. Check your internet and tap again.',false);return}
+      set('flpass_'+n,'');unlocked=u;b.hidden=true;renderLessons();
+      banner(n>=12?'All 12 lessons passed. Great work. Tap Start to review.':'Lesson '+n+' complete. Lesson '+u+' is open. Tap Start for the next one.',true,null,true);
       try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){window.scrollTo(0,0)}
-    }).catch(function(){f.disabled=false;confirmFinish=false;$('finMsg').textContent='Could not save. Check your internet and tap again.';f.textContent='I finished this lesson'});
+    }).catch(function(){b.disabled=false;banner('Could not save. Check your internet and tap again.',false)});
   });
 
   /* ---- chat ---- */
@@ -256,11 +264,11 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
   }
   function save(){var keep=msgs.filter(function(m){return m.r!=='sys'}).slice(-30);set('flchat_'+today,JSON.stringify(keep))}
   function loadChat(){try{msgs=JSON.parse(get('flchat_'+today)||'[]')||[]}catch(e){msgs=[]}}
-  function banner(t,ok,retry){
+  function banner(t,ok,retry,keep){
     var b=$('banner');if(!t){b.hidden=true;return}
     b.className='banner'+(ok?' ok':'');b.textContent=t;b.hidden=false;
     if(retry){var r=document.createElement('button');r.textContent='Try again';r.style.marginLeft='12px';r.style.minHeight='44px';r.addEventListener('click',retry);b.appendChild(r)}
-    else setTimeout(function(){if(b.textContent===t)b.hidden=true},9000);
+    else if(!keep)setTimeout(function(){if(b.textContent===t)b.hidden=true},9000);
   }
   function setBusy(v){busy=v;['qStart','qReady','qStop','sendBtn','msg'].forEach(function(i){$(i).disabled=v})}
   function transcript(){
@@ -268,6 +276,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
   }
   function sendText(text){
     text=(text||'').trim();if(!text||busy)return;
+    $('banner').hidden=true;
     msgs.push({r:'me',t:text});save();renderMsgs();setBusy(true);
     var wait={r:'sys',t:'Your tutor is typing...'};msgs.push(wait);renderMsgs();
     var attempt=0;
@@ -290,6 +299,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
         logLine(m[0].trim());
       }
       if(reply){msgs.push({r:'coach',t:reply})}
+      if(/(lesson|unit) passed/i.test(reply)){set('flpass_'+unlocked,'1');showUnlock();banner('Great job. Tap the button below to open the next lesson.',true,null,true)}
       save();renderMsgs();
     }).catch(function(){
       msgs.splice(msgs.indexOf(wait),1);msgs.push({r:'sys',t:'No connection. Check your internet, then send again.'});renderMsgs();
@@ -309,10 +319,10 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
 
   function openApp(){
     $('gate').hidden=true;$('app').hidden=false;
-    loadChat();renderMsgs();renderLessons();showMins();
+    loadChat();renderMsgs();renderLessons();showMins();if(get('flpass_'+unlocked)==='1')showUnlock();
   }
   /* ---- tester reset: add ?reset=1 to the link to clear this phone's chat and minutes ---- */
-  try{if(/[?&]reset=1/.test(location.search)){Object.keys(localStorage).forEach(function(k){if(/^(flchat_|fltime_)/.test(k))localStorage.removeItem(k)});for(var k in mem){if(/^(flchat_|fltime_)/.test(k))delete mem[k]}secs=0;history.replaceState(null,'',location.pathname)}}catch(e){}
+  try{if(/[?&]reset=1/.test(location.search)){Object.keys(localStorage).forEach(function(k){if(/^(flchat_|fltime_|flpass_)/.test(k))localStorage.removeItem(k)});for(var k in mem){if(/^(flchat_|fltime_|flpass_)/.test(k))delete mem[k]}secs=0;history.replaceState(null,'',location.pathname)}}catch(e){}
   /* ---- boot ---- */
   if(code){
     post({code:code,action:'state'}).then(function(r){
