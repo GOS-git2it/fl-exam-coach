@@ -251,7 +251,17 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
     text=(text||'').trim();if(!text||busy)return;
     msgs.push({r:'me',t:text});save();renderMsgs();setBusy(true);
     var wait={r:'sys',t:'Your tutor is typing...'};msgs.push(wait);renderMsgs();
-    post({code:code,action:'chat',minutes:String(mins()),transcript:transcript()}).then(function(r){
+    var attempt=0;
+    function ask(){
+      return post({code:code,action:'chat',minutes:String(mins()),transcript:transcript(),retry:String(attempt)}).then(function(r){
+        if(r.status===200&&/^The tutor is busy/.test((r.text||'').trim())&&attempt<3){
+          attempt++;
+          return new Promise(function(res){setTimeout(res,1500*attempt)}).then(ask);
+        }
+        return r;
+      });
+    }
+    ask().then(function(r){
       msgs.splice(msgs.indexOf(wait),1);
       if(r.status===401){code='';set('flcode','');showGate('Your code stopped working. Type it again.');return}
       var reply=(r.text||'').trim()||'The tutor did not answer. Tap the button again.';
