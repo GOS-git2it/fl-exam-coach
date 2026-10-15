@@ -203,6 +203,18 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
       box.appendChild(b);
     });
   }
+  /* Lock-screen and headphone controls: title, show name, artwork, skip buttons. */
+  function setLockScreen(n){
+    if(!('mediaSession' in navigator)||typeof MediaMetadata==='undefined')return;
+    try{
+      var a=$('frame');
+      navigator.mediaSession.metadata=new MediaMetadata({title:'Lesson '+n+': '+LESSONS[n-1][0],artist:'FL Exam Coach',album:'Florida General Lines 0220',artwork:[{src:'audio/cover.png',sizes:'512x512',type:'image/png'}]});
+      navigator.mediaSession.setActionHandler('play',function(){a.play()});
+      navigator.mediaSession.setActionHandler('pause',function(){a.pause()});
+      navigator.mediaSession.setActionHandler('seekbackward',function(){a.currentTime=Math.max(0,a.currentTime-15)});
+      navigator.mediaSession.setActionHandler('seekforward',function(){a.currentTime=Math.min(a.duration||1e9,a.currentTime+15)});
+    }catch(e){}
+  }
   function stopAudio(){var a=$('frame');try{a.pause()}catch(e){}a.removeAttribute('src');a.load()}
   function openPlayer(n){
     selected=n;confirmFinish=false;
@@ -210,6 +222,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
     $('frame').src='audio/lesson'+n+'.m4a';
     $('drive').href='https://drive.google.com/file/d/'+LESSONS[n-1][1]+'/view';
     $('player').hidden=false;
+    setLockScreen(n);
     var f=$('finish');f.hidden=(n!==unlocked);f.textContent='I finished this lesson';
     $('finMsg').textContent=(n===unlocked)?'Listen, take the quiz with your tutor, then tap the button above.':'You already finished this one. Listen again any time.';
     renderLessons();
