@@ -34,11 +34,12 @@ header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-conte
 .today b{color:var(--amber)}
 .cols{display:flex;flex-direction:column;gap:20px}
 @media(max-width:999px){.msgs{max-height:40vh;min-height:130px}}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:-14px;position:relative;z-index:1;align-items:end}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:14px 0 0;position:relative;z-index:1;align-items:end}
 .tabs button{background:var(--card);color:var(--fg);border:4px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;min-height:60px;font-size:22px;padding:8px 12px}
 .tabs button[aria-selected=true]{background:var(--bg2);border-color:#FFD84D;min-height:64px;margin-bottom:-4px;padding-bottom:12px}
 .tabs .dot{display:inline-block;background:var(--amber);color:var(--ink);border-radius:999px;font-size:14px;padding:2px 10px;margin-left:8px;vertical-align:middle}
 .cols>section.panel{border:4px solid #FFD84D}
+#pnlT{border-top-left-radius:0!important}#pnlL{border-top-right-radius:0!important}
 .sub{font-size:20px;color:var(--fg);margin-top:4px}
 @media(max-width:999px){h1{font-size:28px}header.top{gap:8px}.wrap{gap:14px}}
 section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
@@ -109,7 +110,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v14</span></p>
+          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v15</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
