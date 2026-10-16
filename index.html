@@ -195,6 +195,9 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
 #home .plabel{font-size:19px;margin:0}
 #sendBtn{background:#FFD84D;color:#14213D;border-color:#FFD84D}
 #home button{min-height:96px;font-size:26px;line-height:1.2;background:#FFD84D;color:#14213D}
+#introBtn{display:none;min-height:40px;padding:4px 12px;font-size:16px;background:var(--card);color:var(--fg);border:2px solid var(--line)}
+#app.home:not(.cmenu) #introBtn{display:inline-flex;align-items:center;position:absolute;top:0;right:0;min-height:36px;padding:2px 10px;font-size:15px}
+header.top{position:relative}
 #homeBtn{min-height:44px;padding:6px 14px;font-size:17px;background:var(--card);color:var(--fg);border:2px solid var(--line)}
 @media(max-width:999px){body.locked h1{font-size:24px}body.locked .pill.t{display:none}}
 </style>
@@ -228,6 +231,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       <div><span class="pill t" id="appPill">FL Exam 0220</span><h1 id="appTitle">Your Exam Coach</h1></div>
       <div class="today" aria-live="off">Studied today: <b id="mins">0</b> min</div>
       <button id="homeBtn" type="button" hidden>🏠 Home</button>
+      <button id="introBtn" type="button" aria-label="How it works">💡 How it works</button>
     </header>
     <section id="home" aria-label="Home">
       <h2>Welcome back</h2>
@@ -240,8 +244,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <p class="copen">Tap to open your course ›</p>
       </div>
       <div class="cnew" aria-label="More courses coming">➕ New course <span>coming soon</span></div>
-      <button id="introBtn" type="button" class="linkbtn" style="align-self:center">How it works</button>
-      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v83</p>
+      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v84</p>
     </section>
     <section id="cmenu" aria-label="Course menu">
       <button id="cBack" type="button" class="ghost">‹ All courses</button>
