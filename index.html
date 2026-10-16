@@ -201,7 +201,6 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       <div class="ctop"><span class="cemoji" aria-hidden="true">🏛️</span><div><div class="ctitle">Florida General Lines</div><div class="csub">Exam 0220 &middot; 12 lessons</div></div></div>
       <p id="cnext" class="hnext"></p>
       <button id="goTutor" type="button" class="alt">💬 Get tutored 💬</button>
-      <button id="goClass" type="button" class="go">🎧 Go to class 🎧</button>
     </section>
     <div class="cols">
       <section id="pnlL" class="panel" aria-labelledby="lh" hidden>
@@ -210,7 +209,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v54</span></p>
+          <p class="note"><span style="opacity:.8">Page v55</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -357,7 +356,6 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   $('course1').addEventListener('click',openCourse);
   $('course1').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openCourse()}});
   $('cBack').addEventListener('click',function(){setTitle(false);$('app').classList.remove('cmenu')});
-  $('goClass').addEventListener('click',function(){leaveHome();showTab('lessons')});
   $('goTutor').addEventListener('click',function(){leaveHome();showTab('tutor')});
   function saveDayQuietly(){
     var dd=dayGet();
