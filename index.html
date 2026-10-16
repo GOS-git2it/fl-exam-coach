@@ -72,7 +72,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
 .quick{display:grid;grid-template-columns:2fr 1fr;gap:8px}
 .answers{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .answers button{padding:8px 0;font-size:26px;background:var(--teal);color:var(--ink)}
-.msgs.one .m{max-width:100%;align-self:stretch;font-size:21px}
+.msgs.one .m{max-width:100%;align-self:stretch;font-size:19px;line-height:1.35}
 .quick.solo{grid-template-columns:1fr}
 .quick button.stop{background:#D62F3A;color:#fff;border:0}
 .quick button{padding:10px 6px;font-size:18px}
@@ -129,7 +129,7 @@ body.locked #pnlT{overflow:hidden}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v18</span></p>
+          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v19</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -302,7 +302,7 @@ body.locked #pnlT{overflow:hidden}
   function lastCoach(){for(var i=msgs.length-1;i>=0;i--){if(msgs[i].r==='coach')return msgs[i]}return null}
   function renderMsgs(){
     var box=$('msgs');box.innerHTML='';
-    var one=(stage==='quiz');box.classList.toggle('one',one);
+    var one=(stage==='quiz');box.classList.toggle('one',one);$('th').hidden=one;
     if(!msgs.length){var s=document.createElement('div');s.className='m sys';s.textContent='Tap Start. Your tutor names today\'s lesson.';box.appendChild(s)}
     var list=msgs;
     if(one){
