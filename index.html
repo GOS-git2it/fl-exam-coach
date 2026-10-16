@@ -70,6 +70,9 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
 .m.me{background:var(--teal);color:var(--ink);align-self:flex-end}
 .m.sys{background:transparent;border:2px dashed var(--line);color:var(--dim);align-self:stretch;text-align:center;max-width:100%}
 .quick{display:grid;grid-template-columns:2fr 1fr;gap:8px}
+.answers{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.answers button{padding:8px 0;font-size:26px;background:var(--teal);color:var(--ink)}
+.msgs.one .m{max-width:100%;align-self:stretch;font-size:21px}
 .quick.solo{grid-template-columns:1fr}
 .quick button.stop{background:#D62F3A;color:#fff;border:0}
 .quick button{padding:10px 6px;font-size:18px}
@@ -126,7 +129,7 @@ body.locked #pnlT{overflow:hidden}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v17</span></p>
+          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v18</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -147,6 +150,9 @@ body.locked #pnlT{overflow:hidden}
         </form>
         <div class="quick">
           <button id="qMain" class="go">Start</button>
+          <div id="answers" class="answers" hidden>
+            <button type="button" data-a="A">A</button><button type="button" data-a="B">B</button><button type="button" data-a="C">C</button><button type="button" data-a="D">D</button>
+          </div>
           <button id="qStop" class="stop">Stop for today</button>
         </div>
         <p class="note hint">Start: the tutor names today's lesson. Then open the Lessons tab and listen. Come back here and tap Ready for your quiz. Stop for today: saves your daily log.</p>
@@ -292,11 +298,23 @@ body.locked #pnlT{overflow:hidden}
   });
 
   /* ---- chat ---- */
+  function isQuestion(t){return /(^|\n)\s*\(?A[\)\.:]/.test(t)&&/(^|\n)\s*\(?B[\)\.:]/.test(t)&&/(^|\n)\s*\(?C[\)\.:]/.test(t)}
+  function lastCoach(){for(var i=msgs.length-1;i>=0;i--){if(msgs[i].r==='coach')return msgs[i]}return null}
   function renderMsgs(){
     var box=$('msgs');box.innerHTML='';
+    var one=(stage==='quiz');box.classList.toggle('one',one);
     if(!msgs.length){var s=document.createElement('div');s.className='m sys';s.textContent='Tap Start. Your tutor names today\'s lesson.';box.appendChild(s)}
-    msgs.forEach(function(m){var d=document.createElement('div');d.className='m '+(m.r==='me'?'me':m.r==='sys'?'sys':'coach');d.textContent=m.t;box.appendChild(d)});
-    box.scrollTop=box.scrollHeight;
+    var list=msgs;
+    if(one){
+      var lc=lastCoach(),tail=msgs[msgs.length-1];
+      list=[];
+      if(tail&&tail.r==='sys')list=[tail];
+      else if(lc)list=[lc];
+      else list=msgs.slice(-2);
+    }
+    list.forEach(function(m){var d=document.createElement('div');d.className='m '+(m.r==='me'?'me':m.r==='sys'?'sys':'coach');d.textContent=m.t;box.appendChild(d)});
+    box.scrollTop=one?0:box.scrollHeight;
+    controls();
   }
   function save(){var keep=msgs.filter(function(m){return m.r!=='sys'}).slice(-30);set('flchat_'+today,JSON.stringify(keep))}
   function loadChat(){try{msgs=JSON.parse(get('flchat_'+today)||'[]')||[]}catch(e){msgs=[]}}
@@ -306,7 +324,7 @@ body.locked #pnlT{overflow:hidden}
     if(retry){var r=document.createElement('button');r.textContent='Try again';r.style.marginLeft='12px';r.style.minHeight='44px';r.addEventListener('click',retry);b.appendChild(r)}
     else if(!keep)setTimeout(function(){if(b.textContent===t)b.hidden=true},9000);
   }
-  function setBusy(v){busy=v;['qMain','qStop','sendBtn','msg'].forEach(function(i){$(i).disabled=v})}
+  function setBusy(v){busy=v;['qMain','qStop','sendBtn','msg','answers'].forEach(function(i){$(i).disabled=v})}
   function transcript(){
     return msgs.filter(function(m){return m.r!=='sys'}).slice(-24).map(function(m){return (m.r==='me'?'Student: ':'Coach: ')+m.t}).join('\n');
   }
@@ -350,14 +368,25 @@ body.locked #pnlT{overflow:hidden}
   }
   /* One big button: Start, then Ready after listening, hidden during the quiz. */
   var stage=get('flchat_stage')||'start';
-  function setStage(x){
-    stage=x;set('flchat_stage',x);
-    var b=$('qMain');b.hidden=(x==='quiz');b.textContent=(x==='ready')?'Ready':'Start';
-    document.querySelector('.quick').classList.toggle('solo',x==='quiz');
+  function controls(){
+    var b=$('qMain'),a=$('answers'),q=document.querySelector('.quick');
+    var passed=(get('flpass_'+unlocked)==='1');
+    if(stage!=='quiz'){b.hidden=false;a.hidden=true;b.textContent=(stage==='ready')?'Ready':'Start';q.classList.remove('solo');return}
+    var lc=lastCoach(),tail=msgs[msgs.length-1];
+    var waiting=!!(tail&&tail.r==='sys'&&/typing/.test(tail.t));
+    var question=!!(lc&&tail&&tail.r==='coach'&&isQuestion(lc.t));
+    a.hidden=!question;
+    b.hidden=question||passed||!lc||waiting;
+    b.textContent='Next question';
+    q.classList.toggle('solo',b.hidden&&a.hidden);
   }
+  function setStage(x){stage=x;set('flchat_stage',x);renderMsgs()}
   $('qMain').addEventListener('click',function(){
-    if(stage==='ready'){setStage('quiz');sendText('ready')}else sendText('start');
+    if(stage==='ready'){setStage('quiz');sendText('ready')}
+    else if(stage==='quiz'){sendText('next')}
+    else sendText('start');
   });
+  $('answers').addEventListener('click',function(e){var a=e.target&&e.target.getAttribute&&e.target.getAttribute('data-a');if(a)sendText(a)});
   $('qStop').addEventListener('click',function(){sendText('stop')});
   $('sendForm').addEventListener('submit',function(e){e.preventDefault();var v=$('msg').value;$('msg').value='';sendText(v)});
 
