@@ -70,6 +70,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
 .m.me{background:var(--teal);color:var(--ink);align-self:flex-end}
 .m.sys{background:transparent;border:2px dashed var(--line);color:var(--dim);align-self:stretch;text-align:center;max-width:100%}
 .quick{display:grid;grid-template-columns:2fr 1fr;gap:8px}
+.qprog{font-size:18px;font-weight:800;color:var(--fg);margin:0}
 .answers{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .answers button{padding:8px 0;font-size:26px;background:var(--teal);color:var(--ink)}
 .msgs.one .m{max-width:100%;align-self:stretch;font-size:19px;line-height:1.35}
@@ -129,7 +130,7 @@ body.locked #pnlT{overflow:hidden}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v20</span></p>
+          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v21</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -140,6 +141,7 @@ body.locked #pnlT{overflow:hidden}
       </section>
       <section id="pnlT" class="panel" aria-labelledby="th">
         <h2 id="th">Your tutor</h2>
+        <p id="qprog" class="qprog" hidden></p>
         <div id="msgs" class="msgs" aria-live="polite"></div>
         <div id="banner" hidden></div>
         <button id="unlockBtn" class="go" hidden>Open next lesson</button>
@@ -302,7 +304,7 @@ body.locked #pnlT{overflow:hidden}
   function lastCoach(){for(var i=msgs.length-1;i>=0;i--){if(msgs[i].r==='coach')return msgs[i]}return null}
   function renderMsgs(){
     var box=$('msgs');box.innerHTML='';
-    var one=(stage==='quiz');box.classList.toggle('one',one);$('th').hidden=one;
+    var one=(stage==='quiz'||stage==='retry'||stage==='done');box.classList.toggle('one',one);$('th').hidden=one;
     if(!msgs.length){var s=document.createElement('div');s.className='m sys';s.textContent='Tap Start. Your tutor names today\'s lesson.';box.appendChild(s)}
     var list=msgs;
     if(one){
@@ -325,8 +327,16 @@ body.locked #pnlT{overflow:hidden}
     else if(!keep)setTimeout(function(){if(b.textContent===t)b.hidden=true},9000);
   }
   function setBusy(v){busy=v;['qMain','qStop','sendBtn','msg','answers'].forEach(function(i){$(i).disabled=v})}
+  var qz={a:0,c:0};try{qz=JSON.parse(get('flchat_qz')||'{"a":0,"c":0}')||{a:0,c:0}}catch(e){qz={a:0,c:0}}
+  function saveQz(){set('flchat_qz',JSON.stringify(qz))}
+  var RESULT=/^\W*(that is |that's |you are |you're )?(correct|right|incorrect|wrong|not quite)/i;
+  var RIGHT=/^\W*(that is |that's |you are |you're )?(correct|right)\b/i;
+  function quizNote(){
+    if(stage!=='quiz')return '';
+    return 'PAGE NOTE (from the page, not the student): Lesson '+unlocked+' quiz. Answers graded so far: '+qz.a+' of 10. Correct so far: '+qz.c+'. The quiz is exactly 10 questions. Start every result with the single word Correct. or Incorrect. If the student message is the 10th answer, give the result, then the lesson score out of 10 and the percent, and say Lesson passed only if 8 or more of 10 are correct. Never ask a question after the 10th answer. If the student message is next and 10 answers are already graded, do not ask another question: repeat the final score in one line.\n';
+  }
   function transcript(){
-    return msgs.filter(function(m){return m.r!=='sys'}).slice(-24).map(function(m){return (m.r==='me'?'Student: ':'Coach: ')+m.t}).join('\n');
+    return quizNote()+msgs.filter(function(m){return m.r!=='sys'}).slice(-24).map(function(m){return (m.r==='me'?'Student: ':'Coach: ')+m.t}).join('\n');
   }
   function sendText(text){
     text=(text||'').trim();if(!text||busy)return;
@@ -357,6 +367,13 @@ body.locked #pnlT{overflow:hidden}
         logLine(m[0].trim());
       }
       if(reply){msgs.push({r:'coach',t:reply})}
+      if(stage==='quiz'&&RESULT.test(reply)&&!isQuestion(reply)){
+        qz.a++;if(RIGHT.test(reply))qz.c++;saveQz();
+        if(qz.a>=10){
+          if(/(lesson|unit) passed/i.test(reply)){setStage('done')}
+          else{setStage('retry')}
+        }
+      }
       if(/(lesson|unit) passed/i.test(reply)){set('flpass_'+unlocked,'1');showUnlock();banner('Great job. Tap the green button below to open the next lesson.',true,null,true)}
       save();renderMsgs();
     }).catch(function(){
@@ -376,8 +393,18 @@ body.locked #pnlT{overflow:hidden}
   /* One big button: Start, then Ready after listening, hidden during the quiz. */
   var stage=get('flchat_stage')||'start';
   function controls(){
+    var qp=$('qprog');
     var b=$('qMain'),a=$('answers'),q=document.querySelector('.quick');
     var passed=(get('flpass_'+unlocked)==='1');
+    (function(){var lc0=lastCoach(),t0=msgs[msgs.length-1];
+      if(stage==='quiz'||stage==='retry'||stage==='done'){
+        var isQ=!!(lc0&&t0&&t0.r==='coach'&&isQuestion(lc0.t));
+        qp.hidden=false;
+        qp.textContent=(stage==='quiz'&&isQ)?('Question '+Math.min(10,qz.a+1)+' of 10'):(qz.a+' of 10 answered. '+qz.c+' right.');
+      }else qp.hidden=true;
+    })();
+    if(stage==='retry'){b.hidden=false;a.hidden=true;b.textContent='Listen again';q.classList.remove('solo');return}
+    if(stage==='done'){b.hidden=true;a.hidden=true;q.classList.add('solo');return}
     if(stage!=='quiz'){b.hidden=false;a.hidden=true;b.textContent=(stage==='ready')?'Ready':'Start';q.classList.remove('solo');return}
     var lc=lastCoach(),tail=msgs[msgs.length-1];
     var waiting=!!(tail&&tail.r==='sys'&&/typing/.test(tail.t));
@@ -389,7 +416,8 @@ body.locked #pnlT{overflow:hidden}
   }
   function setStage(x){stage=x;set('flchat_stage',x);renderMsgs()}
   $('qMain').addEventListener('click',function(){
-    if(stage==='ready'){setStage('quiz');sendText('ready')}
+    if(stage==='retry'){showTab('lessons');return}
+    if(stage==='ready'){qz={a:0,c:0};saveQz();setStage('quiz');sendText('ready')}
     else if(stage==='quiz'){sendText('next')}
     else sendText('start');
   });
@@ -409,7 +437,7 @@ body.locked #pnlT{overflow:hidden}
     setStage(stage);showTab('tutor',true);loadChat();renderMsgs();renderLessons();showMins();if(get('flpass_'+unlocked)==='1')showUnlock();
   }
   /* ---- tester reset: add ?reset=1 to the link to clear this phone's chat and minutes ---- */
-  try{if(/[?&]reset=1/.test(location.search)){Object.keys(localStorage).forEach(function(k){if(/^(flchat_|fltime_|flpass_)/.test(k))localStorage.removeItem(k)});for(var k in mem){if(/^(flchat_|fltime_|flpass_)/.test(k))delete mem[k]}secs=0;stage='start';history.replaceState(null,'',location.pathname)}}catch(e){}
+  try{if(/[?&]reset=1/.test(location.search)){Object.keys(localStorage).forEach(function(k){if(/^(flchat_|fltime_|flpass_)/.test(k))localStorage.removeItem(k)});for(var k in mem){if(/^(flchat_|fltime_|flpass_)/.test(k))delete mem[k]}secs=0;stage='start';qz={a:0,c:0};history.replaceState(null,'',location.pathname)}}catch(e){}
   /* ---- boot ---- */
   if(code){
     post({code:code,action:'state'}).then(function(r){
