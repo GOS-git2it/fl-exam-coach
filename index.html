@@ -176,7 +176,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v43</span></p>
+          <p class="note"><span style="opacity:.8">Page v44</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -500,6 +500,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       var wx=msgs.indexOf(wait);if(wx>-1)msgs.splice(wx,1);
       if(r.status===401){code='';set('flcode','');showGate('Your code stopped working. Type it again.');return}
       var reply=(r.text||'').trim()||'The tutor did not answer. Tap the button again.';
+      reply=reply.replace(/tabs? (?:is |are )?(?:at |on )?the top/ig,function(x){return x.replace(/top/i,'bottom')}).replace(/\b(Lessons|Tutor) tab at the top/g,'$1 tab at the bottom').replace(/\bthe top (Lessons|Tutor) tab/g,'the $1 tab at the bottom');
       var m=/^DAILY\|.*$/m.exec(reply);
       if(m){
         reply=reply.replace(m[0],'').replace(/\n{3,}/g,'\n\n').trim();
