@@ -148,7 +148,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v25</span></p>
+          <p class="note"><span style="opacity:.8">Page v26</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -281,6 +281,21 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   }
   $('tabT').addEventListener('click',function(){showTab('tutor')});
   $('tabL').addEventListener('click',function(){showTab('lessons')});
+  (function(){
+    var x0=0,y0=0,t0=0,ok=false;
+    document.addEventListener('touchstart',function(e){
+      var t=e.target,tag=(t.tagName||'').toLowerCase();
+      ok=e.touches.length===1&&!$('app').classList.contains('home')&&tag!=='input'&&tag!=='textarea'&&tag!=='audio'&&!(t.closest&&t.closest('audio,input,textarea,.gate'));
+      x0=e.touches[0].clientX;y0=e.touches[0].clientY;t0=Date.now();
+    },{passive:true});
+    document.addEventListener('touchend',function(e){
+      if(!ok)return;ok=false;
+      var c=e.changedTouches[0],dx=c.clientX-x0,dy=c.clientY-y0;
+      if(Date.now()-t0>700||Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.6)return;
+      if(dx<0&&tab==='tutor')showTab('lessons');
+      else if(dx>0&&tab==='lessons')showTab('tutor');
+    },{passive:true});
+  })();
   /* Lock-screen and headphone controls: title, show name, artwork, skip buttons. */
   function setLockScreen(n){
     if(!('mediaSession' in navigator)||typeof MediaMetadata==='undefined')return;
@@ -401,7 +416,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       if(m)stopping=false;
       if(stopping&&!m){stopping=false;save();renderMsgs();setStage('start');showHome('Nice work today. See you next time.');return}
       if(stage==='quiz'&&RESULT.test(reply)&&!isQuestion(reply)){
-        qz.a++;if(RIGHT.test(reply))qz.c++;saveQz();
+        qz.a++;var rt=RIGHT.test(reply);if(rt)qz.c++;saveQz();var dd=dayGet();dd.a++;if(rt)dd.c++;daySave(dd);autoSave();
         if(qz.a>=10){
           if(/(lesson|unit) passed/i.test(reply)){setStage('done')}
           else{setStage('retry')}
@@ -416,10 +431,30 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       banner('Could not reach your tutor. Tap Try again.',false,function(){$('banner').hidden=true;sendText(text)});
     }).then(function(){setBusy(false);$('msg').focus&&0});
   }
-  function logLine(line){
+  var UNITOF=[0,1,1,1,2,2,2,3,3,4,5,6,7];
+  function dayGet(){try{return JSON.parse(get('flday_'+today)||'null')||{a:0,c:0,eps:[],x:''}}catch(e){return {a:0,c:0,eps:[],x:''}}}
+  function daySave(d){set('flday_'+today,JSON.stringify(d))}
+  function pad2(n){return (n<10?'0':'')+n}
+  function buildLine(tutorLine){
+    var d=dayGet(),f={};
+    if(tutorLine){d.x=tutorLine;daySave(d)}
+    var src=d.x||'';
+    src.split('|').forEach(function(p,i){if(i)f[p.trim().split(' ')[0]]=p.trim()});
+    var ep='Ep'+pad2(unlocked);if(d.eps.indexOf(ep)<0){d.eps.push(ep);daySave(d)}
+    var pct=d.a?Math.round(100*d.c/d.a):0;
+    var rest=[f.weakest||'weakest FL law General Lines',f.missed||'missed: -',f.sections||'sections: -'];
+    return 'DAILY|minutes '+mins()+'|questions '+d.a+'|correct '+pct+'|unit '+UNITOF[unlocked]+'|passed '+(get('flpass_'+unlocked)==='1'?'yes':'no')+'|episodes '+d.eps.join(' ')+'|'+rest.join('|');
+  }
+  function autoSave(){
+    if(!code)return;
+    var line=buildLine('');
+    post({code:code,action:'log',line:line,day:today}).catch(function(){});
+  }
+  function logLine(line,silent){
+    line=buildLine(line);
     if(line===lastLine)return;
     post({code:code,action:'log',line:line,day:today}).then(function(r){
-      if(r.status===200&&/saved/.test(r.text)){lastLine=line;stopping=false;banner('Saved to your daily log. Nice work today.',true);setStage('start');showHome('Saved. Nice work today.')}
+      if(r.status===200&&/saved/.test(r.text)){lastLine=line;if(silent)return;stopping=false;banner('Saved to your daily log. Nice work today.',true);setStage('start');showHome('Saved. Nice work today.')}
       else banner('Your log did not save.',false,function(){logLine(line)});
     }).catch(function(){banner('Your log did not save. Check your internet.',false,function(){logLine(line)})});
   }
