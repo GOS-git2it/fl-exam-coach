@@ -179,7 +179,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   <div id="sideBox" hidden role="dialog" aria-modal="true" aria-labelledby="sbh"><div class="lvcard sbcard"><div class="sidehead"><span id="sbh">💡 Your hints</span><button id="sbClose" type="button" class="ghost">Got it</button></div><div id="sbl"></div></div></div>
   <div id="leaveBox" hidden role="dialog" aria-modal="true" aria-labelledby="lvh"><div class="lvcard">
     <h2 id="lvh">Leave your quiz?</h2>
-    <p>You are in the middle of Lesson <b id="lvn">1</b>. If you leave now, your day is saved and this quiz starts over from question 1.</p>
+    <p>You are in the middle of Lesson <b id="lvn">1</b>. If you leave now, your session is saved and this quiz starts over from question 1.</p>
     <button id="lvStay" type="button" class="go">Keep going</button>
     <button id="lvGo" type="button" class="ghost">Save and leave</button>
   </div></div>
@@ -227,7 +227,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v66</span></p>
+          <p class="note"><span style="opacity:.8">Page v67</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -389,14 +389,14 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   $('homeBtn').addEventListener('click',function(){
     if(stage==='quiz'&&qz.a>0&&qz.a<10){$('lvn').textContent=unlocked;$('leaveBox').hidden=false;$('lvStay').focus();return}
     var saving=saveDayQuietly();
-    showHome(saving?'Saving your day...':'');
+    showHome(saving?'Saving your session...':'');
   });
   $('lvStay').addEventListener('click',function(){$('leaveBox').hidden=true});
   $('lvGo').addEventListener('click',function(){
     $('leaveBox').hidden=true;
     var saving=saveDayQuietly();
     qz={a:0,c:0};saveQz();msgs=[];save();try{stopAudio()}catch(e){}selected=0;$('player').hidden=true;
-    setStage('ready');showHome(saving?'Saving your day...':'');
+    setStage('ready');showHome(saving?'Saving your session...':'');
   });
   /* ---- tabs ---- */
   var tab='tutor';
@@ -635,9 +635,9 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     line=buildLine(line);
     if(line===lastLine)return;
     post({code:code,action:'log',line:line,day:today}).then(function(r){
-      if(r.status===200&&/saved/.test(r.text)){lastLine=line;var d2=dayGet();d2.sum=d2.a;daySave(d2);stopping=false;if(goHome||$('app').classList.contains('home'))showHome(cheer());else banner('Saved to your daily log.',true)}
-      else banner('Your log did not save.',false,function(){logLine(line)});
-    }).catch(function(){banner('Your log did not save. Check your internet.',false,function(){logLine(line)})});
+      if(r.status===200&&/saved/.test(r.text)){lastLine=line;var d2=dayGet();d2.sum=d2.a;daySave(d2);stopping=false;if(goHome||$('app').classList.contains('home'))showHome(cheer());else banner('Session saved.',true)}
+      else banner('Your session did not save.',false,function(){logLine(line)});
+    }).catch(function(){banner('Your session did not save. Check your internet.',false,function(){logLine(line)})});
   }
   /* One big button: Start, then Ready after listening, hidden during the quiz. */
   var stage=get('flchat_stage')||'start';
