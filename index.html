@@ -224,7 +224,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       <section id="pnlL" class="panel" aria-labelledby="lh" hidden>
         <h2 id="lh">Your lessons</h2>
         <p class="note">Tap the yellow lesson to play it. Then tap I finished listening. Your coach quizzes you next.</p>
-        <p class="note"><span style="opacity:.8">Page v73</span></p>
+        <p class="note"><span style="opacity:.8">Page v74</span></p>
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
@@ -583,6 +583,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       var reply=(r.text||'').trim()||'The coach did not answer. Tap the button again.';
       reply=reply.replace(/\btutoring\b/g,'coaching').replace(/\bTutoring\b/g,'Coaching').replace(/\btutored\b/g,'coached').replace(/\bTutored\b/g,'Coached').replace(/\btutors\b/g,'coaches').replace(/\btutor\b/g,'coach').replace(/\bTutor\b/g,'Coach');
       reply=reply.replace(/tabs? (?:is |are )?(?:at |on )?the top/ig,function(x){return x.replace(/top/i,'bottom')}).replace(/\b(Lessons|Tutor) tab at the top/g,'$1 tab at the bottom').replace(/\bthe top (Lessons|Tutor) tab/g,'the $1 tab at the bottom');
+      reply=reply.replace(/(?:and |then )?(?:press|hit|tap) (?:the )?play(?: button)?/ig,function(x){return /^(and|then) /i.test(x)?x.split(' ')[0]+' tap Lesson '+unlocked:(/^[A-Z]/.test(x)?'Tap':'tap')+' Lesson '+unlocked});
       var m=/^DAILY\|.*$/m.exec(reply);
       if(m){
         reply=reply.replace(m[0],'').replace(/\n{3,}/g,'\n\n').trim();
@@ -684,7 +685,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       if(stage==='start'&&/^\s*(start|go)\W*$/i.test(v)){$('qMain').click();return}
       if(stage==='start'){
         msgs.push({r:'me',t:v.trim()});
-        msgs.push({r:'coach',t:'Today: Lesson '+unlocked+', '+LESSONS[unlocked-1][0]+'. Tap the Lessons tab at the bottom and press play. When the audio ends, tap I finished listening. Then tap Ready.'});
+        msgs.push({r:'coach',t:'Today: Lesson '+unlocked+', '+LESSONS[unlocked-1][0]+'. Tap the Lessons tab at the bottom and tap Lesson '+unlocked+'. When the audio ends, tap I finished listening. Then tap Ready.'});
         save();renderMsgs();return;
       }
       if(!$('qMain').hidden&&(stage==='ready'||stage==='quiz')){$('qMain').click();return}
