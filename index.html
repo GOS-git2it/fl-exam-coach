@@ -122,6 +122,12 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
 #home h2{font-size:30px;margin:0}
 #home .hmsg{border-radius:14px;padding:12px 16px;background:var(--teal);color:var(--ink);font-weight:800}
 #home .hnext{font-size:19px;margin:0}
+#home .hprog{display:flex;flex-direction:column;gap:8px}
+#home .dots{display:flex;gap:6px;flex-wrap:nowrap}
+#home .dots i{flex:1 1 0;min-width:0;height:14px;border-radius:999px;background:var(--card);border:2px solid var(--line)}
+#home .dots i.on{background:#FFD84D;border-color:#FFD84D}
+#home .dots i.cur{border-color:#FFD84D}
+#home .plabel{font-size:19px;margin:0}
 #home button{min-height:96px;font-size:26px;line-height:1.2;background:#FFD84D;color:#14213D}
 #homeBtn{min-height:44px;padding:6px 14px;font-size:17px;background:var(--card);color:var(--fg);border:2px solid var(--line)}
 @media(max-width:999px){body.locked h1{font-size:24px}body.locked .pill.t{display:none}}
@@ -158,6 +164,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     <section id="home" aria-label="Home">
       <h2>Welcome back</h2>
       <p id="hmsg" class="hmsg" hidden></p>
+      <div id="hprog" class="hprog" aria-label="Lessons passed"></div>
       <p id="hnext" class="hnext"></p>
       <button id="goTutor" type="button" class="alt">💬 Get tutored 💬</button>
       <button id="goClass" type="button" class="go">🎧 Go to class 🎧</button>
@@ -173,7 +180,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v38</span></p>
+          <p class="note"><span style="opacity:.8">Page v39</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -282,12 +289,33 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     $('lockNote').textContent=left>0?(left+' more lesson'+(left>1?'s':'')+' locked. Pass the quiz to open the next one.'):'All 12 lessons are open.';
   }
   /* ---- home screen ---- */
+  function passedCount(){var n=0;for(var i=1;i<=12;i++){if(get('flpass_'+i)==='1'||i<unlocked)n++}return n}
+  function cheer(){
+    var n=passedCount(),left=12-n,dd=dayGet(),pct=dd.a?Math.round(100*dd.c/dd.a):0,k=Math.floor(Date.now()/86400000)%2,base;
+    if(n===0)base=['Saved. Starting is the hardest part, and you did it.','Saved. Every question you answer makes the exam smaller.'][k];
+    else if(n<3)base=['Saved. '+n+' of 12 lessons passed. The base is going in.','Saved. '+n+(n===1?' lesson':' lessons')+' passed. Keep stacking them.'][k];
+    else if(n<6)base=['Saved. '+n+' of 12 passed. You are building real momentum.','Saved. '+n+' lessons passed. This is what progress looks like.'][k];
+    else if(n===6)base='Saved. Halfway there. 6 lessons passed, 6 to go.';
+    else if(n<10)base=['Saved. Past the halfway mark. '+left+' lessons to go.','Saved. '+n+' passed. The hard middle is behind you.'][k];
+    else if(n<12)base=['Saved. Only '+left+(left===1?' lesson':' lessons')+' left. The finish line is close.','Saved. '+n+' of 12 passed. You are almost there.'][k];
+    else base='Saved. All 12 lessons passed. You finished the whole course.';
+    if(dd.a>=5&&pct>=80)base+=' That was a strong session.';
+    else if(dd.a>=5&&pct<60)base+=' The ones you missed are where the points are. They get easier next time.';
+    return base;
+  }
+  function drawProg(){
+    var n=passedCount(),h=$('hprog');h.innerHTML='';
+    var d=document.createElement('div');d.className='dots';
+    for(var i=1;i<=12;i++){var e=document.createElement('i');if(get('flpass_'+i)==='1')e.className='on';else if(i===unlocked)e.className='cur';d.appendChild(e)}
+    var t=document.createElement('p');t.className='plabel';t.textContent=n+' of 12 lessons passed';
+    h.appendChild(d);h.appendChild(t);
+  }
   function showHome(msg){
     try{$('frame').pause()}catch(e){}
     $('app').classList.add('home');$('homeBtn').hidden=true;side=null;
     var m=$('hmsg');m.textContent=msg||'';m.hidden=!msg;
     $('hnext').textContent='Next up: Lesson '+unlocked+', '+LESSONS[unlocked-1][0]+'.';
-    showMins();
+    drawProg();showMins();
   }
   document.addEventListener('visibilitychange',function(){if(!document.hidden)checkStale()});
   function leaveHome(){checkStale();$('app').classList.remove('home');$('homeBtn').hidden=false}
@@ -486,7 +514,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       }
       if(reply){msgs.push({r:'coach',t:reply});side=null}
       if(m)stopping=false;
-      if(stopping&&!m){stopping=false;save();renderMsgs();setStage('start');showHome('Nice work today. See you next time.');return}
+      if(stopping&&!m){stopping=false;save();renderMsgs();setStage('start');showHome(cheer());return}
       if(stage==='quiz'&&RESULT.test(reply)&&!isQuestion(reply)){
         touchQuiz();qz.a++;var rt=RIGHT.test(reply);if(rt)qz.c++;saveQz();var dd=dayGet();dd.a++;if(rt)dd.c++;daySave(dd);autoSave();
         if(qz.a>=10){
@@ -527,7 +555,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     line=buildLine(line);
     if(line===lastLine)return;
     post({code:code,action:'log',line:line,day:today}).then(function(r){
-      if(r.status===200&&/saved/.test(r.text)){lastLine=line;var d2=dayGet();d2.sum=d2.a;daySave(d2);stopping=false;if(goHome||$('app').classList.contains('home'))showHome('Saved. Nice work today.');else banner('Saved to your daily log. Nice work today.',true)}
+      if(r.status===200&&/saved/.test(r.text)){lastLine=line;var d2=dayGet();d2.sum=d2.a;daySave(d2);stopping=false;if(goHome||$('app').classList.contains('home'))showHome(cheer());else banner('Saved to your daily log.',true)}
       else banner('Your log did not save.',false,function(){logLine(line)});
     }).catch(function(){banner('Your log did not save. Check your internet.',false,function(){logLine(line)})});
   }
