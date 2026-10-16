@@ -142,6 +142,8 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
 #home .copen{margin:0;font-weight:800;color:#FFD84D;font-size:18px}
 #app.home .tabs,#app.home .cols{display:none}
 #home h2{font-size:30px;margin:0}
+#home .hmsg{transition:opacity .6s ease}
+#home .hmsg.fade{opacity:0}
 #home .hmsg{border-radius:14px;padding:12px 16px;background:var(--teal);color:var(--ink);font-weight:800}
 #home .clabel{margin:4px 0 -6px;font-size:15px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
 #home .course{background:var(--card);border:3px solid #FFD84D;border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
@@ -218,7 +220,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v60</span></p>
+          <p class="note"><span style="opacity:.8">Page v61</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -334,7 +336,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   function passedCount(){var n=0;for(var i=1;i<=12;i++){if(get('flpass_'+i)==='1'||i<unlocked)n++}return n}
   function cheer(){
     var n=passedCount(),left=12-n,dd=dayGet(),pct=dd.a?Math.round(100*dd.c/dd.a):0,k=Math.floor(Date.now()/86400000)%2,base;
-    if(n===0)base=['Saved. You started. That counts.','Saved. Every question shrinks the exam.'][k];
+    if(n===0)return 'Saved.';
     else if(n<3)base=['Saved. '+n+' of 12 passed. You are off and running.','Saved. '+n+(n===1?' lesson':' lessons')+' passed. Keep stacking them.'][k];
     else if(n<6)base=['Saved. '+n+' of 12 passed. You are building real momentum.','Saved. '+n+' lessons passed. This is what progress looks like.'][k];
     else if(n===6)base='Saved. Halfway there. 6 lessons passed, 6 to go.';
@@ -352,10 +354,12 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     var t=document.createElement('p');t.className='plabel';t.textContent=n+' of 12 lessons passed';
     h.appendChild(d);h.appendChild(t);
   }
+  var hmT=0;
   function showHome(msg){
     try{$('frame').pause()}catch(e){}
     $('app').classList.add('home');$('app').classList.remove('cmenu');setTitle(false);$('homeBtn').hidden=true;side=null;sideOpen=false;syncSide(false);
-    var m=$('hmsg');m.textContent=msg||'';m.hidden=!msg;
+    var m=$('hmsg');clearTimeout(hmT);m.classList.remove('fade');m.textContent=msg||'';m.hidden=!msg;
+    if(msg){var ms=msg.length<12?3500:Math.min(11000,3500+msg.length*70);hmT=setTimeout(function(){m.classList.add('fade');hmT=setTimeout(function(){m.hidden=true;m.classList.remove('fade')},700)},ms)}
     $('hnext').textContent=$('cnext').textContent='Next up: Lesson '+unlocked+', '+LESSONS[unlocked-1][0]+'.';
     drawProg();showMins();
   }
