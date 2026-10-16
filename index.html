@@ -227,7 +227,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v69</span></p>
+          <p class="note"><span style="opacity:.8">Page v70</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -676,7 +676,19 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     else sendText('start');
   });
   $('answers').addEventListener('click',function(e){var a=e.target&&e.target.getAttribute&&e.target.getAttribute('data-a');if(a)sendText(a)});
-  $('sendForm').addEventListener('submit',function(e){e.preventDefault();var v=$('msg').value;$('msg').value='';sendText(v)});
+  $('sendForm').addEventListener('submit',function(e){
+    e.preventDefault();var v=$('msg').value;$('msg').value='';
+    if(!busy&&/^\s*(ready|next|start|go)\W*$/i.test(v)){
+      if(stage==='start'&&/^\s*(start|go)\W*$/i.test(v)){$('qMain').click();return}
+      if(stage==='start'){
+        msgs.push({r:'me',t:v.trim()});
+        msgs.push({r:'coach',t:'Today: Lesson '+unlocked+', '+LESSONS[unlocked-1][0]+'. Tap the Lessons tab at the bottom and press play. When the audio ends, tap I finished listening. Then tap Ready.'});
+        save();renderMsgs();return;
+      }
+      if(!$('qMain').hidden&&(stage==='ready'||stage==='quiz')){$('qMain').click();return}
+    }
+    sendText(v);
+  });
 
 
   /* lock the page to the visible screen; the chat and lesson list scroll inside */
