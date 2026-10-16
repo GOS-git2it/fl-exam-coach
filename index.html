@@ -223,11 +223,11 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     <div class="cols">
       <section id="pnlL" class="panel" aria-labelledby="lh" hidden>
         <h2 id="lh">Your lessons</h2>
-        <p class="note">Listen here. Then tap I finished listening. Your coach quizzes you next.</p>
+        <p class="note">Tap the yellow lesson to play it. Then tap I finished listening. Your coach quizzes you next.</p>
+        <p class="note"><span style="opacity:.8">Page v71</span></p>
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v70</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -329,7 +329,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       var st=n<unlocked?'done':n===unlocked?'next':'locked',l=LESSONS[n-1];
       var b=document.createElement('button');b.type='button';
       b.className='lesson '+st+(selected===n?' sel':'');
-      b.innerHTML='<span class="n">'+n+'</span><span class="t"></span><span class="tag '+st+'">'+(st==='done'?'DONE':st==='next'?'NEXT':'\uD83D\uDD12 LOCKED')+'</span>';
+      b.innerHTML='<span class="n">'+(st==='locked'?n:'\u25B6')+'</span><span class="t"></span><span class="tag '+st+'">'+(st==='done'?'DONE':st==='next'?'NEXT':'\uD83D\uDD12 LOCKED')+'</span>';
       b.querySelector('.t').textContent=l[0];
       if(st==='locked'){b.setAttribute('aria-disabled','true')}
       else b.addEventListener('click',function(){openPlayer(n)});
@@ -380,7 +380,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     m.addEventListener('focus',function(){document.body.classList.add('typing')});
     m.addEventListener('blur',function(){setTimeout(function(){if(document.activeElement!==m)document.body.classList.remove('typing')},120)});
   })();
-  $('goTutor').addEventListener('click',function(){leaveHome();showTab('tutor')});
+  $('goTutor').addEventListener('click',function(){leaveHome();if(stage==='ready')setStage('start');showTab('tutor')});
   function saveDayQuietly(){
     var dd=dayGet();
     if(dd.a>0&&dd.sum!==dd.a&&code&&!busy){quietStop=true;sendText('stop');return true}
@@ -396,7 +396,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     $('leaveBox').hidden=true;
     var saving=saveDayQuietly();
     qz={a:0,c:0};saveQz();msgs=[];save();try{stopAudio()}catch(e){}selected=0;$('player').hidden=true;
-    setStage('ready');showHome(saving?'Saving your session...':'');
+    setStage('start');showHome(saving?'Saving your session...':'');
   });
   /* ---- tabs ---- */
   var tab='tutor';
@@ -404,7 +404,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     tab=t;
     $('pnlT').hidden=(t!=='tutor');$('pnlL').hidden=(t!=='lessons');
     $('tabT').setAttribute('aria-selected',t==='tutor');$('tabL').setAttribute('aria-selected',t==='lessons');
-    if(t==='lessons'){$('newDot').hidden=true;if(!selected)openPlayer(unlocked,true)}
+    if(t==='lessons'){$('newDot').hidden=true;}
     else{try{$('frame').pause()}catch(e){}}
     if(!noScroll){try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){window.scrollTo(0,0)}}
   }
@@ -550,7 +550,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   function touchQuiz(){set('flquiz_t',String(Date.now()))}
   function checkStale(){
     if(stage==='quiz'&&qz.a>0&&Date.now()-Number(get('flquiz_t')||0)>IDLE_MS){
-      qz={a:0,c:0};saveQz();msgs=[];save();side=[];setStage('ready');return true;
+      qz={a:0,c:0};saveQz();msgs=[];save();side=[];setStage('start');return true;
     }
     return false;
   }
