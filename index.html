@@ -74,6 +74,13 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
 .m.me{background:var(--teal);color:var(--ink);align-self:flex-end}
 .m.sys{background:transparent;border:2px dashed var(--line);color:var(--dim);align-self:stretch;text-align:center;max-width:100%}
 .quick{display:grid;grid-template-columns:2fr 1fr;gap:8px}
+.sidecard{background:var(--card);border:3px solid var(--teal);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;animation:sidein .28s ease-out;flex-shrink:0}
+.sidehead{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:var(--display);font-size:19px;color:var(--teal);white-space:nowrap}
+.sidehead button{min-height:44px;padding:6px 16px;font-size:18px;white-space:nowrap}
+.sideq{margin:0;font-size:16px;color:var(--dim);font-style:italic;overflow-wrap:anywhere}
+.sidea{font-size:19px;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere}
+@keyframes sidein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.sidecard{animation:none}}
 .qprog{font-size:18px;font-weight:800;color:var(--fg);margin:0}
 .answers{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .answers button{padding:8px 0;font-size:26px;background:var(--teal);color:var(--ink)}
@@ -158,7 +165,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v33</span></p>
+          <p class="note"><span style="opacity:.8">Page v34</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -175,7 +182,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <button id="unlockBtn" class="go" hidden>Open next lesson</button>
         <form id="sendForm" class="send" autocomplete="off">
           <label for="msg" hidden>Your message</label>
-          <input id="msg" type="text" placeholder="Type your answer here" autocomplete="off">
+          <input id="msg" type="text" placeholder="Ask your tutor a question" autocomplete="off">
           <button id="sendBtn" type="submit" class="alt">Send</button>
         </form>
         <div class="quick">
@@ -270,7 +277,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   /* ---- home screen ---- */
   function showHome(msg){
     try{$('frame').pause()}catch(e){}
-    $('app').classList.add('home');$('homeBtn').hidden=true;
+    $('app').classList.add('home');$('homeBtn').hidden=true;side=null;
     var m=$('hmsg');m.textContent=msg||'';m.hidden=!msg;
     $('hnext').textContent='Next up: Lesson '+unlocked+', '+LESSONS[unlocked-1][0]+'.';
     showMins();
@@ -363,7 +370,10 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
 
   /* ---- chat ---- */
   function isQuestion(t){return /(^|\n)\s*\(?A[\)\.:]/.test(t)&&/(^|\n)\s*\(?B[\)\.:]/.test(t)&&/(^|\n)\s*\(?C[\)\.:]/.test(t)}
-  function lastCoach(){for(var i=msgs.length-1;i>=0;i--){if(msgs[i].r==='coach')return msgs[i]}return null}
+  function lastCoach(){for(var i=msgs.length-1;i>=0;i--){if(msgs[i].r==='coach'&&!msgs[i].side)return msgs[i]}return null}
+  var side=null;
+  function showSide(q,a){side={q:q,a:a};renderMsgs()}
+  function hideSide(){if(side){side=null;renderMsgs()}}
   function renderMsgs(){
     var box=$('msgs');box.innerHTML='';
     var one=(stage==='quiz'||stage==='retry'||stage==='done');box.classList.toggle('one',one);$('th').hidden=one;
@@ -377,7 +387,19 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       else list=msgs.slice(-2);
     }
     list.forEach(function(m){var d=document.createElement('div');d.className='m '+(m.r==='me'?'me':m.r==='sys'?'sys':'coach');d.textContent=m.t;box.appendChild(d)});
+    var card=null;
+    if(side&&one){
+      card=document.createElement('div');card.className='sidecard';card.setAttribute('role','status');
+      var h=document.createElement('div');h.className='sidehead';
+      var t=document.createElement('span');t.textContent='💡 Tutor says';
+      var x=document.createElement('button');x.type='button';x.className='ghost';x.textContent='Got it';x.addEventListener('click',hideSide);
+      h.appendChild(t);h.appendChild(x);
+      var q=document.createElement('p');q.className='sideq';q.textContent='You asked: '+side.q;
+      var an=document.createElement('div');an.className='sidea';an.textContent=side.a;
+      var bk=document.createElement('p');bk.className='sideq';bk.style.fontStyle='normal';bk.textContent='Tap Got it to go back to your question.';card.appendChild(h);card.appendChild(q);card.appendChild(an);card.appendChild(bk);box.appendChild(card);
+    }
     box.scrollTop=one?0:box.scrollHeight;
+    if(card){try{card.scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}}
     controls();
   }
   function save(){var keep=msgs.filter(function(m){return m.r!=='sys'}).slice(-30);set('flchat_'+today,JSON.stringify(keep))}
@@ -430,7 +452,13 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         reply=reply.replace(m[0],'').replace(/\n{3,}/g,'\n\n').trim();
         logLine(m[0].trim());
       }
-      if(reply){msgs.push({r:'coach',t:reply})}
+      var sideRep=false;
+      if(/^\W*ASK\|/i.test(reply)){reply=reply.replace(/^\W*ASK\|\s*/i,'').trim();sideRep=true}
+      var inOne=(stage==='quiz'||stage==='retry'||stage==='done');
+      if(sideRep&&inOne&&reply){
+        msgs.push({r:'coach',t:reply,side:true});side={q:text,a:reply};save();renderMsgs();return;
+      }
+      if(reply){msgs.push({r:'coach',t:reply});side=null}
       if(m)stopping=false;
       if(stopping&&!m){stopping=false;save();renderMsgs();setStage('start');showHome('Nice work today. See you next time.');return}
       if(stage==='quiz'&&RESULT.test(reply)&&!isQuestion(reply)){
@@ -503,7 +531,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     b.textContent='Next question';
     q.classList.toggle('solo',b.hidden&&a.hidden);
   }
-  function setStage(x){stage=x;set('flchat_stage',x);renderMsgs()}
+  function setStage(x){stage=x;set('flchat_stage',x);side=null;renderMsgs()}
   $('qMain').addEventListener('click',function(){
     if(stage==='retry'){showTab('lessons');return}
     if(stage==='ready'){qz={a:0,c:0};saveQz();setStage('quiz');sendText('ready')}
