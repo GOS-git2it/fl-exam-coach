@@ -105,8 +105,8 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
 @media(prefers-reduced-motion:no-preference){.m{animation:pop .15s ease-out}@keyframes pop{from{transform:translateY(4px);opacity:.5}to{transform:none;opacity:1}}}
 /* typing focus: fade everything but the box and Ask */
 header.top,.tabs,#pnlT>*,.cols>section.panel{transition:opacity .2s,border-color .2s}
-body.typing header.top,body.typing .tabs,body.typing #pnlT>*:not(#sendForm){opacity:.18}
-body.typing .cols>section.panel{border-color:var(--line)}
+body.typing header.top,body.typing .tabs,body.typing #pnlT>*:not(#sendForm){opacity:.06}
+body.typing .cols>section.panel{border-color:rgba(127,150,190,.12)}
 /* lock to screen */
 body.locked{overflow:hidden;height:100%;padding-block:10px}
 body.locked html,html:has(body.locked){overflow:hidden;height:100%}
@@ -213,7 +213,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v58</span></p>
+          <p class="note"><span style="opacity:.8">Page v59</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
