@@ -129,7 +129,7 @@ body.locked #pnlT{overflow:hidden}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v19</span></p>
+          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v20</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -331,11 +331,15 @@ body.locked #pnlT{overflow:hidden}
   function sendText(text){
     text=(text||'').trim();if(!text||busy)return;
     $('banner').hidden=true;
-    msgs.push({r:'me',t:text});save();renderMsgs();setBusy(true);
+    var meMsg={r:'me',t:text};msgs.push(meMsg);save();renderMsgs();setBusy(true);
     var wait={r:'sys',t:'Your tutor is typing...'};msgs.push(wait);renderMsgs();
     var attempt=0;
     function ask(){
-      return post({code:code,action:'chat',minutes:String(mins()),transcript:transcript(),retry:String(attempt)}).then(function(r){
+      return post({code:code,action:'chat',minutes:String(mins()),transcript:transcript(),retry:String(attempt)}).catch(function(e){
+        if(attempt<3){attempt++;return new Promise(function(res){setTimeout(res,1500*attempt)}).then(ask)}
+        throw e;
+      }).then(function(r){
+        if(!r||typeof r.status==='undefined')return r;
         if(r.status===200&&/^The tutor is busy/.test((r.text||'').trim())&&attempt<3){
           attempt++;
           return new Promise(function(res){setTimeout(res,1500*attempt)}).then(ask);
@@ -356,7 +360,10 @@ body.locked #pnlT{overflow:hidden}
       if(/(lesson|unit) passed/i.test(reply)){set('flpass_'+unlocked,'1');showUnlock();banner('Great job. Tap the green button below to open the next lesson.',true,null,true)}
       save();renderMsgs();
     }).catch(function(){
-      msgs.splice(msgs.indexOf(wait),1);msgs.push({r:'sys',t:'No connection. Check your internet, then send again.'});renderMsgs();
+      var wi=msgs.indexOf(wait);if(wi>-1)msgs.splice(wi,1);
+      var mi=msgs.indexOf(meMsg);if(mi>-1)msgs.splice(mi,1);
+      save();renderMsgs();
+      banner('Could not reach your tutor. Tap Try again.',false,function(){$('banner').hidden=true;sendText(text)});
     }).then(function(){setBusy(false);$('msg').focus&&0});
   }
   function logLine(line){
