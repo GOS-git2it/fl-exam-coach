@@ -158,7 +158,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v29</span></p>
+          <p class="note"><span style="opacity:.8">Page v30</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -284,7 +284,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   });
   $('lvStay').addEventListener('click',function(){$('leaveBox').hidden=true});
   $('lvGo').addEventListener('click',function(){
-    $('leaveBox').hidden=true;qz={a:0,c:0};saveQz();stopping=false;
+    $('leaveBox').hidden=true;qz={a:0,c:0};saveQz();stopping=false;msgs=[];save();
     setStage('ready');showHome('');
   });
   /* ---- tabs ---- */
@@ -367,7 +367,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   function renderMsgs(){
     var box=$('msgs');box.innerHTML='';
     var one=(stage==='quiz'||stage==='retry'||stage==='done');box.classList.toggle('one',one);$('th').hidden=one;
-    if(!msgs.length){var s=document.createElement('div');s.className='m sys';s.textContent='Tap Start. Your tutor names today\'s lesson.';box.appendChild(s)}
+    if(!msgs.length){var s=document.createElement('div');s.className='m sys';s.textContent=(stage==='ready'?'Tap Ready when you want your quiz.':'Tap Start. Your tutor names today\'s lesson.');box.appendChild(s)}
     var list=msgs;
     if(one){
       var lc=lastCoach(),tail=msgs[msgs.length-1];
