@@ -178,11 +178,11 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v48</span></p>
+          <p class="note"><span style="opacity:.8">Page v49</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
-          <p id="finMsg" class="note" role="status"></p>
+          <p id="finMsg" class="note" role="status" hidden></p>
         </div>
         <div id="lessons" class="lessons"></div>
         <p id="lockNote" class="note"></p>
@@ -389,7 +389,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     $('player').hidden=false;
     setLockScreen(n);
     var f=$('finish');f.hidden=(n!==unlocked);f.textContent='I finished listening';
-    $('finMsg').textContent=(n===unlocked)?'Listen first. Then tap the button above. Your tutor will quiz you next.':'You already passed this one. Listen again any time.';
+    $('finMsg').textContent='';
     renderLessons();
   }
     $('finish').addEventListener('click',function(){
