@@ -224,7 +224,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       <section id="pnlL" class="panel" aria-labelledby="lh" hidden>
         <h2 id="lh">Your lessons</h2>
         <p class="note">Tap the yellow lesson to play it. Then tap I finished listening. Your coach quizzes you next.</p>
-        <p class="note"><span style="opacity:.8">Page v71</span></p>
+        <p class="note"><span style="opacity:.8">Page v72</span></p>
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
@@ -342,13 +342,13 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   function passedCount(){var n=0;for(var i=1;i<=12;i++){if(get('flpass_'+i)==='1'||i<unlocked)n++}return n}
   function cheer(){
     var n=passedCount(),left=12-n,dd=dayGet(),pct=dd.a?Math.round(100*dd.c/dd.a):0,k=Math.floor(Date.now()/86400000)%2,base;
-    if(n===0)return 'Saved.';
-    else if(n<3)base=['Saved. '+n+' of 12 passed. You are off and running.','Saved. '+n+(n===1?' lesson':' lessons')+' passed. Keep stacking them.'][k];
-    else if(n<6)base=['Saved. '+n+' of 12 passed. You are building real momentum.','Saved. '+n+' lessons passed. This is what progress looks like.'][k];
-    else if(n===6)base='Saved. Halfway there. 6 lessons passed, 6 to go.';
-    else if(n<10)base=['Saved. Past the halfway mark. '+left+' lessons to go.','Saved. '+n+' passed. The hard middle is behind you.'][k];
-    else if(n<12)base=['Saved. Only '+left+(left===1?' lesson':' lessons')+' left. The finish line is close.','Saved. '+n+' of 12 passed. You are almost there.'][k];
-    else base='Saved. All 12 lessons passed. You finished the whole course.';
+    if(n===0)return '';
+    else if(n<3)base=[''+n+' of 12 passed. You are off and running.',''+n+(n===1?' lesson':' lessons')+' passed. Keep stacking them.'][k];
+    else if(n<6)base=[''+n+' of 12 passed. You are building real momentum.',''+n+' lessons passed. This is what progress looks like.'][k];
+    else if(n===6)base='Halfway there. 6 lessons passed, 6 to go.';
+    else if(n<10)base=['Past the halfway mark. '+left+' lessons to go.',''+n+' passed. The hard middle is behind you.'][k];
+    else if(n<12)base=['Only '+left+(left===1?' lesson':' lessons')+' left. The finish line is close.',''+n+' of 12 passed. You are almost there.'][k];
+    else base='All 12 lessons passed. You finished the whole course.';
     if(dd.a>=5&&pct>=80)base+=' That was a strong session.';
     else if(dd.a>=5&&pct<60)base+=' The ones you missed are where the points are. They get easier next time.';
     return base;
@@ -364,7 +364,9 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   function showHome(msg){
     try{$('frame').pause()}catch(e){}
     $('app').classList.add('home');$('app').classList.remove('cmenu');setTitle(false);$('homeBtn').hidden=true;side=[];sideOpen=false;syncSide(false);
-    var m=$('hmsg');clearTimeout(hmT);m.classList.remove('fade');m.textContent=msg||'';m.hidden=!msg;
+    var m=$('hmsg');clearTimeout(hmT);
+    if(!msg&&!m.hidden){m.classList.add('fade');hmT=setTimeout(function(){m.hidden=true;m.classList.remove('fade')},700)}
+    else{m.classList.remove('fade');m.textContent=msg||'';m.hidden=!msg}
     if(msg){var ms=msg.length<12?3500:Math.min(11000,3500+msg.length*70);hmT=setTimeout(function(){m.classList.add('fade');hmT=setTimeout(function(){m.hidden=true;m.classList.remove('fade')},700)},ms)}
     $('hnext').textContent=$('cnext').textContent='Next up: Lesson '+unlocked+', '+LESSONS[unlocked-1][0]+'.';
     drawProg();showMins();
