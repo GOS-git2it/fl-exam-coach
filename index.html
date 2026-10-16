@@ -180,7 +180,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
 
   <div id="app" hidden>
     <header class="top">
-      <div><span class="pill t">FL Exam 0220</span><h1>Your FL Exam Coach</h1></div>
+      <div><span class="pill t" id="appPill">FL Exam 0220</span><h1 id="appTitle">Your Exam Coach</h1></div>
       <div class="today" aria-live="off">Studied today: <b id="mins">0</b> min</div>
       <button id="homeBtn" type="button" hidden>🏠 Home</button>
     </header>
@@ -210,7 +210,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v53</span></p>
+          <p class="note"><span style="opacity:.8">Page v54</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -345,17 +345,18 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   }
   function showHome(msg){
     try{$('frame').pause()}catch(e){}
-    $('app').classList.add('home');$('app').classList.remove('cmenu');$('homeBtn').hidden=true;side=null;
+    $('app').classList.add('home');$('app').classList.remove('cmenu');setTitle(false);$('homeBtn').hidden=true;side=null;
     var m=$('hmsg');m.textContent=msg||'';m.hidden=!msg;
     $('hnext').textContent=$('cnext').textContent='Next up: Lesson '+unlocked+', '+LESSONS[unlocked-1][0]+'.';
     drawProg();showMins();
   }
   document.addEventListener('visibilitychange',function(){if(!document.hidden)checkStale()});
-  function leaveHome(){checkStale();$('app').classList.remove('home');$('app').classList.remove('cmenu');$('homeBtn').hidden=false}
-  function openCourse(){$('app').classList.add('cmenu')}
+  function setTitle(fl){$('appPill').hidden=!fl;$('appTitle').textContent=fl?'Your FL Exam Coach':'Your Exam Coach'}
+  function leaveHome(){setTitle(true);checkStale();$('app').classList.remove('home');$('app').classList.remove('cmenu');$('homeBtn').hidden=false}
+  function openCourse(){setTitle(true);$('app').classList.add('cmenu')}
   $('course1').addEventListener('click',openCourse);
   $('course1').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openCourse()}});
-  $('cBack').addEventListener('click',function(){$('app').classList.remove('cmenu')});
+  $('cBack').addEventListener('click',function(){setTitle(false);$('app').classList.remove('cmenu')});
   $('goClass').addEventListener('click',function(){leaveHome();showTab('lessons')});
   $('goTutor').addEventListener('click',function(){leaveHome();showTab('tutor')});
   function saveDayQuietly(){
