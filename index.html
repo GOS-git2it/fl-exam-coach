@@ -94,6 +94,8 @@ body.locked .cols{flex:1 1 auto;min-height:0}
 body.locked .cols>section.panel{flex:1 1 auto;min-height:0;overflow-y:auto;padding:14px}
 body.locked #pnlT .msgs{flex:1 1 auto;min-height:60px;max-height:none}
 body.locked #pnlT{overflow:hidden}
+body.locked #pnlT>*:not(.msgs){flex-shrink:0}
+#unlockBtn{min-height:64px;font-size:21px;line-height:1.2}
 @media(max-height:760px){.hint{display:none}}
 @media(max-width:999px){body.locked h1{font-size:24px}body.locked .pill.t{display:none}}
 </style>
@@ -130,7 +132,7 @@ body.locked #pnlT{overflow:hidden}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v21</span></p>
+          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v22</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -286,7 +288,7 @@ body.locked #pnlT{overflow:hidden}
   });
   /* Next lesson opens only after the tutor says the lesson is passed. */
   function showUnlock(){
-    var b=$('unlockBtn');b.textContent=unlocked<12?'Lesson '+unlocked+' passed. Open Lesson '+(unlocked+1):'Lesson 12 passed. Finish the course';b.hidden=false;
+    var b=$('unlockBtn');b.textContent=unlocked<12?'Open Lesson '+(unlocked+1):'Lesson 12 passed. Finish the course';b.hidden=false;
   }
   $('unlockBtn').addEventListener('click',function(){
     var b=$('unlockBtn'),n=unlocked;b.disabled=true;
@@ -374,7 +376,7 @@ body.locked #pnlT{overflow:hidden}
           else{setStage('retry')}
         }
       }
-      if(/(lesson|unit) passed/i.test(reply)){set('flpass_'+unlocked,'1');showUnlock();banner('Great job. Tap the green button below to open the next lesson.',true,null,true)}
+      if(/(lesson|unit) passed/i.test(reply)){set('flpass_'+unlocked,'1');showUnlock()}
       save();renderMsgs();
     }).catch(function(){
       var wi=msgs.indexOf(wait);if(wi>-1)msgs.splice(wi,1);
