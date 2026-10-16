@@ -103,6 +103,13 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
 .quick button.stop{background:#D62F3A;color:#fff;border:0}
 .quick button{padding:10px 6px;font-size:18px}
 .send{display:flex;gap:8px}
+.inwrap{position:relative;flex:1;min-width:0;display:flex}
+.inwrap input{flex:1;padding-right:56px!important}
+#hintBulb{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:0;background:#FFD84D;font-size:24px;line-height:1;padding:0;display:flex;align-items:center;justify-content:center}
+#hintBulb[hidden],#hintTag[hidden]{display:none}
+#hintBulb b{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:var(--teal);color:#14213D;font-size:12px;line-height:18px;text-align:center}
+#hintTag{position:absolute;right:58px;top:50%;transform:translateY(-50%);font-weight:800;font-size:17px;color:var(--teal);pointer-events:none;white-space:nowrap}
+.sidehint+.sidehint{border-top:2px solid var(--line);padding-top:10px;margin-top:4px}
 .send input{flex:1;min-width:0;font:inherit;font-weight:700;font-size:19px;min-height:56px;border-radius:14px;border:3px solid var(--line);background:var(--bg);color:var(--fg);padding:8px 14px}
 .banner{border-radius:14px;padding:12px 16px;background:var(--amber);color:var(--ink);font-weight:800}
 .banner.ok{background:var(--teal)}
@@ -169,7 +176,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
 
 
 <div class="wrap">
-  <div id="sideBox" hidden role="dialog" aria-modal="true" aria-labelledby="sbh"><div class="lvcard sbcard"><div class="sidehead"><span id="sbh">💡 Coach says</span><button id="sbClose" type="button" class="ghost">Got it</button></div><p id="sbq" class="sideq"></p><div id="sba" class="sidea"></div></div></div>
+  <div id="sideBox" hidden role="dialog" aria-modal="true" aria-labelledby="sbh"><div class="lvcard sbcard"><div class="sidehead"><span id="sbh">💡 Your hints</span><button id="sbClose" type="button" class="ghost">Got it</button></div><div id="sbl"></div></div></div>
   <div id="leaveBox" hidden role="dialog" aria-modal="true" aria-labelledby="lvh"><div class="lvcard">
     <h2 id="lvh">Leave your quiz?</h2>
     <p>You are in the middle of Lesson <b id="lvn">1</b>. If you leave now, your day is saved and this quiz starts over from question 1.</p>
@@ -220,7 +227,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v61</span></p>
+          <p class="note"><span style="opacity:.8">Page v62</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -233,12 +240,11 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <h2 id="th">Your coach</h2>
         <p id="qprog" class="qprog" hidden></p>
         <div id="msgs" class="msgs" aria-live="polite"></div>
-        <button id="hintLink" type="button" class="linkbtn" hidden>💡 Show hint</button>
-        <div id="banner" hidden></div>
+                <div id="banner" hidden></div>
         <button id="unlockBtn" class="go" hidden>Open next lesson</button>
         <form id="sendForm" class="send" autocomplete="off">
           <label for="msg" hidden>Your message</label>
-          <input id="msg" type="text" placeholder="Ask your coach…" autocomplete="off">
+          <div class="inwrap"><input id="msg" type="text" placeholder="Ask your coach…" autocomplete="off"><span id="hintTag" hidden>Hint ➜</span><button id="hintBulb" type="button" hidden aria-label="Show hints">💡<b id="hintN"></b></button></div>
           <button id="sendBtn" type="submit" class="alt">Ask</button>
         </form>
         <div class="quick">
@@ -357,7 +363,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   var hmT=0;
   function showHome(msg){
     try{$('frame').pause()}catch(e){}
-    $('app').classList.add('home');$('app').classList.remove('cmenu');setTitle(false);$('homeBtn').hidden=true;side=null;sideOpen=false;syncSide(false);
+    $('app').classList.add('home');$('app').classList.remove('cmenu');setTitle(false);$('homeBtn').hidden=true;side=[];sideOpen=false;syncSide(false);
     var m=$('hmsg');clearTimeout(hmT);m.classList.remove('fade');m.textContent=msg||'';m.hidden=!msg;
     if(msg){var ms=msg.length<12?3500:Math.min(11000,3500+msg.length*70);hmT=setTimeout(function(){m.classList.add('fade');hmT=setTimeout(function(){m.hidden=true;m.classList.remove('fade')},700)},ms)}
     $('hnext').textContent=$('cnext').textContent='Next up: Lesson '+unlocked+', '+LESSONS[unlocked-1][0]+'.';
@@ -469,18 +475,30 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   /* ---- chat ---- */
   function isQuestion(t){return /(^|\n)\s*\(?A[\)\.:]/.test(t)&&/(^|\n)\s*\(?B[\)\.:]/.test(t)&&/(^|\n)\s*\(?C[\)\.:]/.test(t)}
   function lastCoach(){for(var i=msgs.length-1;i>=0;i--){if(msgs[i].r==='coach'&&!msgs[i].side)return msgs[i]}return null}
-  var side=null;
+  var side=[];
   var sideOpen=false;
   function syncSide(one){
-    var on=!!(side&&one);
-    $('sbq').textContent=on?'You asked: '+side.q:'';$('sba').textContent=on?side.a:'';
-    $('sideBox').hidden=!(on&&sideOpen);
-    $('hintLink').hidden=!(on&&!sideOpen);
+    var n=one?side.length:0;
+    var l=$('sbl');l.innerHTML='';
+    side.forEach(function(h,i){
+      var d=document.createElement('div');d.className='sidehint';
+      var q=document.createElement('p');q.className='sideq';q.textContent='Hint '+(i+1)+' · You asked: '+h.q;
+      var a=document.createElement('div');a.className='sidea';a.textContent=h.a;
+      d.appendChild(q);d.appendChild(a);l.appendChild(d);
+    });
+    $('sideBox').hidden=!(n&&sideOpen);
+    $('hintBulb').hidden=!n;$('hintN').textContent=n>1?n:'';
+    $('msg').placeholder=n?'Ask…':'Ask your coach…';
+    updTag();
   }
+  function updTag(){var m=$('msg');$('hintTag').hidden=!(side.length&&!m.value&&document.activeElement!==m&&$('sideBox').hidden&&!$('hintBulb').hidden)}
   function hideSide(){sideOpen=false;syncSide(stage==='quiz'||stage==='retry'||stage==='done')}
-  function openSide(){if(side){sideOpen=true;syncSide(true)}}
+  function openSide(){if(side.length){sideOpen=true;syncSide(true)}}
   $('sbClose').addEventListener('click',hideSide);
-  $('hintLink').addEventListener('click',openSide);
+  $('hintBulb').addEventListener('click',openSide);
+  $('msg').addEventListener('focus',function(){if(sideOpen)hideSide();updTag()});
+  $('msg').addEventListener('blur',function(){setTimeout(updTag,150)});
+  $('msg').addEventListener('input',updTag);
   $('sideBox').addEventListener('click',function(e){if(e.target===$('sideBox'))hideSide()});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('sideBox').hidden)hideSide()});
   function renderMsgs(){
@@ -531,7 +549,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   function touchQuiz(){set('flquiz_t',String(Date.now()))}
   function checkStale(){
     if(stage==='quiz'&&qz.a>0&&Date.now()-Number(get('flquiz_t')||0)>IDLE_MS){
-      qz={a:0,c:0};saveQz();msgs=[];save();side=null;setStage('ready');return true;
+      qz={a:0,c:0};saveQz();msgs=[];save();side=[];setStage('ready');return true;
     }
     return false;
   }
@@ -572,9 +590,9 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       if(/^\W*ASK\|/i.test(reply)){reply=reply.replace(/^\W*ASK\|\s*/i,'').trim();sideRep=true}
       var inOne=(stage==='quiz'||stage==='retry'||stage==='done');
       if(sideRep&&inOne&&reply){
-        msgs.push({r:'coach',t:reply,side:true});side={q:text,a:reply};sideOpen=true;save();renderMsgs();return;
+        msgs.push({r:'coach',t:reply,side:true});side.push({q:text,a:reply});sideOpen=true;save();renderMsgs();return;
       }
-      if(reply){msgs.push({r:'coach',t:reply});side=null}
+      if(reply){msgs.push({r:'coach',t:reply});side=[]}
       if(m)stopping=false;
       if(stopping&&!m){stopping=false;save();renderMsgs();setStage('start');showHome(cheer());return}
       if(stage==='quiz'&&RESULT.test(reply)&&!isQuestion(reply)){
@@ -648,7 +666,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     b.textContent='Next question';
     q.classList.toggle('solo',b.hidden&&a.hidden);
   }
-  function setStage(x){stage=x;set('flchat_stage',x);side=null;renderMsgs()}
+  function setStage(x){stage=x;set('flchat_stage',x);side=[];renderMsgs()}
   $('qMain').addEventListener('click',function(){
     if(stage==='retry'){showTab('lessons');return}
     if(stage==='ready'){qz={a:0,c:0};saveQz();setStage('quiz');touchQuiz();sendText('ready')}
