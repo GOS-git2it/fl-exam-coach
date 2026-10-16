@@ -97,6 +97,14 @@ body.locked #pnlT{overflow:hidden}
 body.locked #pnlT>*:not(.msgs){flex-shrink:0}
 #unlockBtn{min-height:64px;font-size:21px;line-height:1.2}
 @media(max-height:760px){.hint{display:none}}
+#home{display:none;flex-direction:column;gap:16px;justify-content:center;flex:1 1 auto;min-height:0}
+#app.home #home{display:flex}
+#app.home .tabs,#app.home .cols{display:none}
+#home h2{font-size:30px;margin:0}
+#home .hmsg{border-radius:14px;padding:12px 16px;background:var(--teal);color:var(--ink);font-weight:800}
+#home .hnext{font-size:19px;margin:0}
+#home button{min-height:96px;font-size:26px;line-height:1.2}
+#homeBtn{min-height:44px;padding:6px 14px;font-size:17px;background:var(--card);color:var(--fg);border:2px solid var(--line)}
 @media(max-width:999px){body.locked h1{font-size:24px}body.locked .pill.t{display:none}}
 </style>
 </head><body>
@@ -120,7 +128,15 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     <header class="top">
       <div><span class="pill t">FL Exam 0220</span><h1>Your FL Exam Coach</h1></div>
       <div class="today" aria-live="off">Studied today: <b id="mins">0</b> min</div>
+      <button id="homeBtn" type="button" hidden>🏠 Home</button>
     </header>
+    <section id="home" aria-label="Home">
+      <h2>Welcome back</h2>
+      <p id="hmsg" class="hmsg" hidden></p>
+      <p id="hnext" class="hnext"></p>
+      <button id="goClass" type="button" class="go">🎧 Go to class</button>
+      <button id="goTutor" type="button" class="alt">💬 Get tutored</button>
+    </section>
     <div class="tabs" role="tablist">
       <button id="tabT" type="button" role="tab" aria-selected="true">💬 Tutor</button>
       <button id="tabL" type="button" role="tab" aria-selected="false">🎧 Lessons<span id="newDot" class="dot" hidden>NEW</span></button>
@@ -132,7 +148,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v22</span></p>
+          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v23</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -241,6 +257,18 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     var left=12-unlocked;
     $('lockNote').textContent=left>0?(left+' more lesson'+(left>1?'s':'')+' locked. Pass the quiz to open the next one.'):'All 12 lessons are open.';
   }
+  /* ---- home screen ---- */
+  function showHome(msg){
+    try{$('frame').pause()}catch(e){}
+    $('app').classList.add('home');$('homeBtn').hidden=true;
+    var m=$('hmsg');m.textContent=msg||'';m.hidden=!msg;
+    $('hnext').textContent='Next up: Lesson '+unlocked+', '+LESSONS[unlocked-1][0]+'.';
+    showMins();
+  }
+  function leaveHome(){$('app').classList.remove('home');$('homeBtn').hidden=false}
+  $('goClass').addEventListener('click',function(){leaveHome();showTab('lessons')});
+  $('goTutor').addEventListener('click',function(){leaveHome();showTab('tutor')});
+  $('homeBtn').addEventListener('click',function(){showHome('')});
   /* ---- tabs ---- */
   var tab='tutor';
   function showTab(t,noScroll){
@@ -340,7 +368,9 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   function transcript(){
     return quizNote()+msgs.filter(function(m){return m.r!=='sys'}).slice(-24).map(function(m){return (m.r==='me'?'Student: ':'Coach: ')+m.t}).join('\n');
   }
+  var stopping=false;
   function sendText(text){
+    if(String(text).trim().toLowerCase()==='stop')stopping=true;
     text=(text||'').trim();if(!text||busy)return;
     $('banner').hidden=true;
     var meMsg={r:'me',t:text};msgs.push(meMsg);save();renderMsgs();setBusy(true);
@@ -369,6 +399,8 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         logLine(m[0].trim());
       }
       if(reply){msgs.push({r:'coach',t:reply})}
+      if(m)stopping=false;
+      if(stopping&&!m){stopping=false;save();renderMsgs();setStage('start');showHome('Nice work today. See you next time.');return}
       if(stage==='quiz'&&RESULT.test(reply)&&!isQuestion(reply)){
         qz.a++;if(RIGHT.test(reply))qz.c++;saveQz();
         if(qz.a>=10){
@@ -388,7 +420,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   function logLine(line){
     if(line===lastLine)return;
     post({code:code,action:'log',line:line,day:today}).then(function(r){
-      if(r.status===200&&/saved/.test(r.text)){lastLine=line;banner('Saved to your daily log. Nice work today.',true)}
+      if(r.status===200&&/saved/.test(r.text)){lastLine=line;stopping=false;banner('Saved to your daily log. Nice work today.',true);setStage('start');showHome('Saved. Nice work today.')}
       else banner('Your log did not save.',false,function(){logLine(line)});
     }).catch(function(){banner('Your log did not save. Check your internet.',false,function(){logLine(line)})});
   }
@@ -437,6 +469,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   function openApp(){
     $('gate').hidden=true;$('app').hidden=false;document.body.classList.add('locked');fit();
     setStage(stage);showTab('tutor',true);loadChat();renderMsgs();renderLessons();showMins();if(get('flpass_'+unlocked)==='1')showUnlock();
+    showHome('');
   }
   /* ---- tester reset: add ?reset=1 to the link to clear this phone's chat and minutes ---- */
   try{if(/[?&]reset=1/.test(location.search)){Object.keys(localStorage).forEach(function(k){if(/^(flchat_|fltime_|flpass_)/.test(k))localStorage.removeItem(k)});for(var k in mem){if(/^(flchat_|fltime_|flpass_)/.test(k))delete mem[k]}secs=0;stage='start';qz={a:0,c:0};history.replaceState(null,'',location.pathname)}}catch(e){}
