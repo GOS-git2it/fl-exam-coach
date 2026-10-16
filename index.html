@@ -148,7 +148,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v26</span></p>
+          <p class="note"><span style="opacity:.8">Page v27</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -460,6 +460,9 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   }
   /* One big button: Start, then Ready after listening, hidden during the quiz. */
   var stage=get('flchat_stage')||'start';
+  /* New study day: a quiz left open last night restarts clean at Ready. */
+  if(get('flchat_stageday')&&get('flchat_stageday')!==today&&stage==='quiz'){stage='ready';set('flchat_stage',stage);qz={a:0,c:0};saveQz()}
+  set('flchat_stageday',today);
   function controls(){
     var qp=$('qprog');
     var b=$('qMain'),a=$('answers'),q=document.querySelector('.quick');
