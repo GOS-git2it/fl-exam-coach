@@ -178,7 +178,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v50</span></p>
+          <p class="note"><span style="opacity:.8">Page v51</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -287,7 +287,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       box.appendChild(b);
     })(n);
     var left=12-unlocked;
-    $('lockNote').textContent=left>0?'Yellow lessons are open. Pass the quiz to open the next one.':'All 12 lessons are open.';
+    $('lockNote').textContent=left>0?'Yellow lessons are open. Pass the quiz to unlock next lesson.':'All 12 lessons are open.';
   }
   /* ---- home screen ---- */
   function passedCount(){var n=0;for(var i=1;i<=12;i++){if(get('flpass_'+i)==='1'||i<unlocked)n++}return n}
