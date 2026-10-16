@@ -89,6 +89,10 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
 .sidehead button{min-height:44px;padding:6px 16px;font-size:18px;white-space:nowrap}
 .sideq{margin:0;font-size:16px;color:var(--dim);font-style:italic;overflow-wrap:anywhere}
 .sidea{font-size:19px;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere}
+#sideBox{position:fixed;inset:0;z-index:50;background:rgba(10,16,32,.88);display:flex;align-items:center;justify-content:center;padding:20px}
+#sideBox[hidden]{display:none}
+.sbcard{border-color:var(--teal)!important;max-height:80vh;overflow-y:auto;animation:sidein .25s ease-out}
+.linkbtn{background:transparent;border:0;color:var(--teal);text-decoration:underline;font:inherit;font-weight:800;font-size:19px;min-height:44px;padding:6px 10px;align-self:flex-start}
 @keyframes sidein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.sidecard{animation:none}}
 .qprog{font-size:18px;font-weight:800;color:var(--fg);margin:0}
@@ -163,6 +167,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
 
 
 <div class="wrap">
+  <div id="sideBox" hidden role="dialog" aria-modal="true" aria-labelledby="sbh"><div class="lvcard sbcard"><div class="sidehead"><span id="sbh">💡 Coach says</span><button id="sbClose" type="button" class="ghost">Got it</button></div><p id="sbq" class="sideq"></p><div id="sba" class="sidea"></div></div></div>
   <div id="leaveBox" hidden role="dialog" aria-modal="true" aria-labelledby="lvh"><div class="lvcard">
     <h2 id="lvh">Leave your quiz?</h2>
     <p>You are in the middle of Lesson <b id="lvn">1</b>. If you leave now, your day is saved and this quiz starts over from question 1.</p>
@@ -213,7 +218,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v59</span></p>
+          <p class="note"><span style="opacity:.8">Page v60</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -226,6 +231,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <h2 id="th">Your coach</h2>
         <p id="qprog" class="qprog" hidden></p>
         <div id="msgs" class="msgs" aria-live="polite"></div>
+        <button id="hintLink" type="button" class="linkbtn" hidden>💡 Show hint</button>
         <div id="banner" hidden></div>
         <button id="unlockBtn" class="go" hidden>Open next lesson</button>
         <form id="sendForm" class="send" autocomplete="off">
@@ -348,7 +354,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   }
   function showHome(msg){
     try{$('frame').pause()}catch(e){}
-    $('app').classList.add('home');$('app').classList.remove('cmenu');setTitle(false);$('homeBtn').hidden=true;side=null;
+    $('app').classList.add('home');$('app').classList.remove('cmenu');setTitle(false);$('homeBtn').hidden=true;side=null;sideOpen=false;syncSide(false);
     var m=$('hmsg');m.textContent=msg||'';m.hidden=!msg;
     $('hnext').textContent=$('cnext').textContent='Next up: Lesson '+unlocked+', '+LESSONS[unlocked-1][0]+'.';
     drawProg();showMins();
@@ -460,8 +466,19 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   function isQuestion(t){return /(^|\n)\s*\(?A[\)\.:]/.test(t)&&/(^|\n)\s*\(?B[\)\.:]/.test(t)&&/(^|\n)\s*\(?C[\)\.:]/.test(t)}
   function lastCoach(){for(var i=msgs.length-1;i>=0;i--){if(msgs[i].r==='coach'&&!msgs[i].side)return msgs[i]}return null}
   var side=null;
-  function showSide(q,a){side={q:q,a:a};renderMsgs()}
-  function hideSide(){if(side){side=null;renderMsgs()}}
+  var sideOpen=false;
+  function syncSide(one){
+    var on=!!(side&&one);
+    $('sbq').textContent=on?'You asked: '+side.q:'';$('sba').textContent=on?side.a:'';
+    $('sideBox').hidden=!(on&&sideOpen);
+    $('hintLink').hidden=!(on&&!sideOpen);
+  }
+  function hideSide(){sideOpen=false;syncSide(stage==='quiz'||stage==='retry'||stage==='done')}
+  function openSide(){if(side){sideOpen=true;syncSide(true)}}
+  $('sbClose').addEventListener('click',hideSide);
+  $('hintLink').addEventListener('click',openSide);
+  $('sideBox').addEventListener('click',function(e){if(e.target===$('sideBox'))hideSide()});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('sideBox').hidden)hideSide()});
   function renderMsgs(){
     var box=$('msgs');box.innerHTML='';
     var one=(stage==='quiz'||stage==='retry'||stage==='done');box.classList.toggle('one',one);$('th').hidden=one;
@@ -475,17 +492,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       else list=msgs.slice(-2);
     }
     list.forEach(function(m){var d=document.createElement('div');d.className='m '+(m.r==='me'?'me':m.r==='sys'?'sys':'coach');d.textContent=m.t;box.appendChild(d)});
-    var card=null;
-    if(side&&one){
-      card=document.createElement('div');card.className='sidecard';card.setAttribute('role','status');
-      var h=document.createElement('div');h.className='sidehead';
-      var t=document.createElement('span');t.textContent='💡 Coach says';
-      var x=document.createElement('button');x.type='button';x.className='ghost';x.textContent='Got it';x.addEventListener('click',hideSide);
-      h.appendChild(t);h.appendChild(x);
-      var q=document.createElement('p');q.className='sideq';q.textContent='You asked: '+side.q;
-      var an=document.createElement('div');an.className='sidea';an.textContent=side.a;
-      var bk=document.createElement('p');bk.className='sideq';bk.style.fontStyle='normal';bk.textContent='Tap Got it to go back to your question.';card.appendChild(h);card.appendChild(q);card.appendChild(an);card.appendChild(bk);box.appendChild(card);
-    }
+    syncSide(one);
     function fit(){
       if(one){box.scrollTop=0;return}
       box.scrollTop=box.scrollHeight;
@@ -493,7 +500,6 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       if(le&&le===box.lastElementChild&&le.offsetHeight>box.clientHeight-8){box.scrollTop+=le.getBoundingClientRect().top-box.getBoundingClientRect().top-4}
     }
     fit();if(window.requestAnimationFrame)requestAnimationFrame(function(){fit();setTimeout(fit,60)});
-    if(card){try{card.scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}}
     controls();
   }
   function save(){var keep=msgs.filter(function(m){return m.r!=='sys'}).slice(-30);set('flchat_'+today,JSON.stringify(keep))}
@@ -562,7 +568,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       if(/^\W*ASK\|/i.test(reply)){reply=reply.replace(/^\W*ASK\|\s*/i,'').trim();sideRep=true}
       var inOne=(stage==='quiz'||stage==='retry'||stage==='done');
       if(sideRep&&inOne&&reply){
-        msgs.push({r:'coach',t:reply,side:true});side={q:text,a:reply};save();renderMsgs();return;
+        msgs.push({r:'coach',t:reply,side:true});side={q:text,a:reply};sideOpen=true;save();renderMsgs();return;
       }
       if(reply){msgs.push({r:'coach',t:reply});side=null}
       if(m)stopping=false;
