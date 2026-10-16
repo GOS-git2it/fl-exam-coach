@@ -227,7 +227,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v63</span></p>
+          <p class="note"><span style="opacity:.8">Page v64</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -590,7 +590,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       if(/^\W*ASK\|/i.test(reply)){reply=reply.replace(/^\W*ASK\|\s*/i,'').trim();sideRep=true}
       var inOne=(stage==='quiz'||stage==='retry'||stage==='done');
       if(sideRep&&inOne&&reply){
-        msgs.push({r:'coach',t:reply,side:true});side.push({q:text,a:reply});sideOpen=true;save();renderMsgs();return;
+        msgs.push({r:'coach',t:reply,side:true});side.push({q:text,a:reply});sideOpen=true;var dh=dayGet();dh.h=(dh.h||0)+1;daySave(dh);if(dh.a>0)autoSave();save();renderMsgs();return;
       }
       if(reply){msgs.push({r:'coach',t:reply});side=[]}
       if(m)stopping=false;
@@ -624,7 +624,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     var ep='Ep'+pad2(unlocked);if(d.eps.indexOf(ep)<0){d.eps.push(ep);daySave(d)}
     var pct=d.a?Math.round(100*d.c/d.a):0;
     var rest=[f.weakest||'weakest FL law General Lines',f.missed||'missed: -',f.sections||'sections: -'];
-    return 'DAILY|minutes '+mins()+'|questions '+d.a+'|correct '+pct+'|unit '+UNITOF[unlocked]+'|passed '+(get('flpass_'+unlocked)==='1'?'yes':'no')+'|episodes '+d.eps.join(' ')+'|'+rest.join('|');
+    return 'DAILY|minutes '+mins()+'|questions '+d.a+'|correct '+pct+'|unit '+UNITOF[unlocked]+'|passed '+(get('flpass_'+unlocked)==='1'?'yes':'no')+'|episodes '+d.eps.join(' ')+'|'+rest.join('|')+'|hints '+(d.h||0);
   }
   function autoSave(){
     if(!code)return;
