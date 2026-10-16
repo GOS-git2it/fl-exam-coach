@@ -105,7 +105,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
 .send{display:flex;gap:8px}
 .inwrap{position:relative;flex:1;min-width:0;display:flex}
 .inwrap input{flex:1;padding-right:56px!important}
-#hintBulb{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:0;background:#FFD84D;font-size:24px;line-height:1;padding:0;display:flex;align-items:center;justify-content:center}
+#hintBulb{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:0;border:0;background:transparent;font-size:28px;flex:none;line-height:1;padding:0;display:flex;align-items:center;justify-content:center}
 #hintBulb[hidden],#hintTag[hidden]{display:none}
 #hintBulb b{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:var(--teal);color:#14213D;font-size:12px;line-height:18px;text-align:center}
 #hintTag{position:absolute;right:58px;top:50%;transform:translateY(-50%);font-weight:800;font-size:17px;color:var(--teal);pointer-events:none;white-space:nowrap}
@@ -227,7 +227,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v62</span></p>
+          <p class="note"><span style="opacity:.8">Page v63</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -244,7 +244,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <button id="unlockBtn" class="go" hidden>Open next lesson</button>
         <form id="sendForm" class="send" autocomplete="off">
           <label for="msg" hidden>Your message</label>
-          <div class="inwrap"><input id="msg" type="text" placeholder="Ask your coach…" autocomplete="off"><span id="hintTag" hidden>Hint ➜</span><button id="hintBulb" type="button" hidden aria-label="Show hints">💡<b id="hintN"></b></button></div>
+          <div class="inwrap"><input id="msg" type="text" placeholder="Ask your coach…" autocomplete="off"><span id="hintTag" hidden>Hint ➜</span><button id="hintBulb" type="button" hidden aria-label="Show hints">💡</button></div>
           <button id="sendBtn" type="submit" class="alt">Ask</button>
         </form>
         <div class="quick">
@@ -487,7 +487,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       d.appendChild(q);d.appendChild(a);l.appendChild(d);
     });
     $('sideBox').hidden=!(n&&sideOpen);
-    $('hintBulb').hidden=!n;$('hintN').textContent=n>1?n:'';
+    $('hintBulb').hidden=!n;$('hintTag').textContent=n>1?'Hints ➜':'Hint ➜';
     $('msg').placeholder=n?'Ask…':'Ask your coach…';
     updTag();
   }
