@@ -35,7 +35,7 @@ header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-conte
 .cols{display:flex;flex-direction:column;gap:20px}
 @media(max-width:999px){.msgs{max-height:40vh;min-height:130px}}
 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:14px 0 0;position:relative;z-index:1;align-items:end}
-.tabs button{background:var(--card);color:var(--fg);border:4px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;min-height:60px;font-size:22px;padding:8px 12px}
+.tabs button{background:var(--card);color:var(--fg);border:4px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;min-height:60px;font-size:20px;padding:8px 4px;white-space:nowrap}
 .tabs button[aria-selected=true]{background:var(--bg2);border-color:#FFD84D;min-height:64px;margin-bottom:-4px;padding-bottom:12px}
 .tabs .dot{display:inline-block;background:var(--amber);color:var(--ink);border-radius:999px;font-size:14px;padding:2px 10px;margin-left:8px;vertical-align:middle}
 .cols>section.panel{border:4px solid #FFD84D}
@@ -76,6 +76,20 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
 .banner{border-radius:14px;padding:12px 16px;background:var(--amber);color:var(--ink);font-weight:800}
 .banner.ok{background:var(--teal)}
 @media(prefers-reduced-motion:no-preference){.m{animation:pop .15s ease-out}@keyframes pop{from{transform:translateY(4px);opacity:.5}to{transform:none;opacity:1}}}
+/* lock to screen */
+body.locked{overflow:hidden;height:100%;padding-block:10px}
+body.locked html,html:has(body.locked){overflow:hidden;height:100%}
+body.locked .wrap{height:100%;gap:0}
+#app{display:flex;flex-direction:column;min-height:0}
+body.locked #app{height:var(--vh,100dvh)}
+body.locked header.top{flex:0 0 auto;margin-bottom:8px}
+body.locked .tabs{flex:0 0 auto;margin-top:0}
+body.locked .cols{flex:1 1 auto;min-height:0}
+body.locked .cols>section.panel{flex:1 1 auto;min-height:0;overflow-y:auto;padding:14px}
+body.locked #pnlT .msgs{flex:1 1 auto;min-height:60px;max-height:none}
+body.locked #pnlT{overflow:hidden}
+@media(max-height:760px){.hint{display:none}}
+@media(max-width:999px){body.locked h1{font-size:24px}body.locked .pill.t{display:none}}
 </style>
 </head><body>
 
@@ -110,7 +124,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v15</span></p>
+          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v16</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -124,17 +138,17 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
         <div id="msgs" class="msgs" aria-live="polite"></div>
         <div id="banner" hidden></div>
         <button id="unlockBtn" class="go" hidden>Open next lesson</button>
-        <div class="quick">
-          <button id="qStart" class="alt">Start</button>
-          <button id="qReady" class="go">Ready</button>
-          <button id="qStop" class="ghost">Stop for today</button>
-        </div>
         <form id="sendForm" class="send" autocomplete="off">
           <label for="msg" hidden>Your message</label>
           <input id="msg" type="text" placeholder="Type your answer here" autocomplete="off">
           <button id="sendBtn" type="submit" class="alt">Send</button>
         </form>
-        <p class="note">Start: the tutor names today's lesson. Then open the Lessons tab and listen. Come back here and tap Ready for your quiz. Stop for today: saves your daily log.</p>
+        <div class="quick">
+          <button id="qStart" class="alt">Start</button>
+          <button id="qReady" class="go">Ready</button>
+          <button id="qStop" class="ghost">Stop for today</button>
+        </div>
+        <p class="note hint">Start: the tutor names today's lesson. Then open the Lessons tab and listen. Come back here and tap Ready for your quiz. Stop for today: saves your daily log.</p>
       </section>
     </div>
   </div>
@@ -338,8 +352,15 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
   $('qStop').addEventListener('click',function(){sendText('stop')});
   $('sendForm').addEventListener('submit',function(e){e.preventDefault();var v=$('msg').value;$('msg').value='';sendText(v)});
 
+
+  /* lock the page to the visible screen; the chat and lesson list scroll inside */
+  function fit(){
+    try{var h=(window.visualViewport?window.visualViewport.height:window.innerHeight);
+    document.documentElement.style.setProperty('--vh',(h-20)+'px');window.scrollTo(0,0)}catch(e){}
+  }
+  try{if(window.visualViewport){visualViewport.addEventListener('resize',fit);visualViewport.addEventListener('scroll',fit)}window.addEventListener('resize',fit)}catch(e){}
   function openApp(){
-    $('gate').hidden=true;$('app').hidden=false;
+    $('gate').hidden=true;$('app').hidden=false;document.body.classList.add('locked');fit();
     showTab('tutor',true);loadChat();renderMsgs();renderLessons();showMins();if(get('flpass_'+unlocked)==='1')showUnlock();
   }
   /* ---- tester reset: add ?reset=1 to the link to clear this phone's chat and minutes ---- */
