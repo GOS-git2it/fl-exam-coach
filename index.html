@@ -148,7 +148,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v23</span></p>
+          <p class="note"><span style="opacity:.8">Page v24</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -301,7 +301,6 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     selected=n;confirmFinish=false;
     $('ptitle').textContent='Lesson '+n+': '+LESSONS[n-1][0];
     $('frame').src='audio/lesson'+n+'.m4a';
-    $('drive').href='https://drive.google.com/file/d/'+LESSONS[n-1][1]+'/view';
     $('player').hidden=false;
     setLockScreen(n);
     var f=$('finish');f.hidden=(n!==unlocked);f.textContent='I finished listening';
