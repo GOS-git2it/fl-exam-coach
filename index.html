@@ -224,7 +224,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       <section id="pnlL" class="panel" aria-labelledby="lh" hidden>
         <h2 id="lh">Your lessons</h2>
         <p class="note">Tap the yellow lesson to play it. Then tap I finished listening. Your coach quizzes you next.</p>
-        <p class="note"><span style="opacity:.8">Page v72</span></p>
+        <p class="note"><span style="opacity:.8">Page v73</span></p>
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
@@ -329,7 +329,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       var st=n<unlocked?'done':n===unlocked?'next':'locked',l=LESSONS[n-1];
       var b=document.createElement('button');b.type='button';
       b.className='lesson '+st+(selected===n?' sel':'');
-      b.innerHTML='<span class="n">'+(st==='locked'?n:'\u25B6')+'</span><span class="t"></span><span class="tag '+st+'">'+(st==='done'?'DONE':st==='next'?'NEXT':'\uD83D\uDD12 LOCKED')+'</span>';
+      b.innerHTML='<span class="n">'+n+'</span><span class="t"></span><span class="tag '+st+'">'+(st==='done'?'DONE':st==='next'?'NEXT':'\uD83D\uDD12 LOCKED')+'</span>';
       b.querySelector('.t').textContent=l[0];
       if(st==='locked'){b.setAttribute('aria-disabled','true')}
       else b.addEventListener('click',function(){openPlayer(n)});
