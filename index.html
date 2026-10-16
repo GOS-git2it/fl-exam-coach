@@ -213,7 +213,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <p class="copen">Tap to open your course ›</p>
       </div>
       <div class="cnew" aria-label="More courses coming">➕ New course <span>coming soon</span></div>
-      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v75</p>
+      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v76</p>
     </section>
     <section id="cmenu" aria-label="Course menu">
       <button id="cBack" type="button" class="ghost">‹ All courses</button>
@@ -441,7 +441,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       navigator.mediaSession.setActionHandler('seekforward',function(){a.currentTime=Math.min(a.duration||1e9,a.currentTime+15)});
     }catch(e){}
   }
-  ['loadedmetadata','play','playing','pause'].forEach(function(e){$('frame').addEventListener(e,function(){if(selected){setLockScreen(selected);setTimeout(function(){if(selected)setLockScreen(selected)},800)}})});
+  ['loadstart','loadedmetadata','canplay','play','playing','pause'].forEach(function(e){$('frame').addEventListener(e,function(){if(selected){setLockScreen(selected);setTimeout(function(){if(selected)setLockScreen(selected)},800)}})});
   function stopAudio(){var a=$('frame');try{a.pause()}catch(e){}a.removeAttribute('src');a.load()}
   function openPlayer(n,quiet){
     selected=n;confirmFinish=false;
