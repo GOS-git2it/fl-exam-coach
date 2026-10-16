@@ -69,7 +69,9 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
 .m.coach{background:var(--card);align-self:flex-start}
 .m.me{background:var(--teal);color:var(--ink);align-self:flex-end}
 .m.sys{background:transparent;border:2px dashed var(--line);color:var(--dim);align-self:stretch;text-align:center;max-width:100%}
-.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.quick{display:grid;grid-template-columns:2fr 1fr;gap:8px}
+.quick.solo{grid-template-columns:1fr}
+.quick button.stop{background:#D62F3A;color:#fff;border:0}
 .quick button{padding:10px 6px;font-size:18px}
 .send{display:flex;gap:8px}
 .send input{flex:1;min-width:0;font:inherit;font-weight:700;font-size:19px;min-height:56px;border-radius:14px;border:3px solid var(--line);background:var(--bg);color:var(--fg);padding:8px 14px}
@@ -124,7 +126,7 @@ body.locked #pnlT{overflow:hidden}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v16</span></p>
+          <p class="note">If the player does not start, <a id="drive" target="_blank" rel="noopener">open the lesson in Google Drive</a>. <span style="opacity:.8">Page v17</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -144,9 +146,8 @@ body.locked #pnlT{overflow:hidden}
           <button id="sendBtn" type="submit" class="alt">Send</button>
         </form>
         <div class="quick">
-          <button id="qStart" class="alt">Start</button>
-          <button id="qReady" class="go">Ready</button>
-          <button id="qStop" class="ghost">Stop for today</button>
+          <button id="qMain" class="go">Start</button>
+          <button id="qStop" class="stop">Stop for today</button>
         </div>
         <p class="note hint">Start: the tutor names today's lesson. Then open the Lessons tab and listen. Come back here and tap Ready for your quiz. Stop for today: saves your daily log.</p>
       </section>
@@ -272,7 +273,7 @@ body.locked #pnlT{overflow:hidden}
     $('finish').addEventListener('click',function(){
     var n=selected;
     stopAudio();$('player').hidden=true;selected=0;renderLessons();
-    showTab('tutor');
+    setStage('ready');showTab('tutor');
     banner('Nice. Now tap Ready. Your tutor will quiz you on Lesson '+n+'.',true,null,true);
   });
   /* Next lesson opens only after the tutor says the lesson is passed. */
@@ -284,7 +285,7 @@ body.locked #pnlT{overflow:hidden}
     post({code:code,action:'done',n:String(n)}).then(function(){return post({code:code,action:'state'})}).then(function(r){
       var u=parseUnlocked(r.text);b.disabled=false;
       if(u===null){banner('Could not save. Check your internet and tap again.',false);return}
-      set('flpass_'+n,'');unlocked=u;selected=0;b.hidden=true;renderLessons();
+      set('flpass_'+n,'');unlocked=u;selected=0;setStage('start');b.hidden=true;renderLessons();
       banner(n>=12?'All 12 lessons passed. Great work. Tap Start to review.':'Lesson '+n+' complete. Lesson '+u+' is open. Tap Start. Then open the Lessons tab.',true,null,true);
       $('newDot').hidden=false;showTab('tutor');
     }).catch(function(){b.disabled=false;banner('Could not save. Check your internet and tap again.',false)});
@@ -305,7 +306,7 @@ body.locked #pnlT{overflow:hidden}
     if(retry){var r=document.createElement('button');r.textContent='Try again';r.style.marginLeft='12px';r.style.minHeight='44px';r.addEventListener('click',retry);b.appendChild(r)}
     else if(!keep)setTimeout(function(){if(b.textContent===t)b.hidden=true},9000);
   }
-  function setBusy(v){busy=v;['qStart','qReady','qStop','sendBtn','msg'].forEach(function(i){$(i).disabled=v})}
+  function setBusy(v){busy=v;['qMain','qStop','sendBtn','msg'].forEach(function(i){$(i).disabled=v})}
   function transcript(){
     return msgs.filter(function(m){return m.r!=='sys'}).slice(-24).map(function(m){return (m.r==='me'?'Student: ':'Coach: ')+m.t}).join('\n');
   }
@@ -347,8 +348,16 @@ body.locked #pnlT{overflow:hidden}
       else banner('Your log did not save.',false,function(){logLine(line)});
     }).catch(function(){banner('Your log did not save. Check your internet.',false,function(){logLine(line)})});
   }
-  $('qStart').addEventListener('click',function(){sendText('start')});
-  $('qReady').addEventListener('click',function(){sendText('ready')});
+  /* One big button: Start, then Ready after listening, hidden during the quiz. */
+  var stage=get('flchat_stage')||'start';
+  function setStage(x){
+    stage=x;set('flchat_stage',x);
+    var b=$('qMain');b.hidden=(x==='quiz');b.textContent=(x==='ready')?'Ready':'Start';
+    document.querySelector('.quick').classList.toggle('solo',x==='quiz');
+  }
+  $('qMain').addEventListener('click',function(){
+    if(stage==='ready'){setStage('quiz');sendText('ready')}else sendText('start');
+  });
   $('qStop').addEventListener('click',function(){sendText('stop')});
   $('sendForm').addEventListener('submit',function(e){e.preventDefault();var v=$('msg').value;$('msg').value='';sendText(v)});
 
@@ -361,10 +370,10 @@ body.locked #pnlT{overflow:hidden}
   try{if(window.visualViewport){visualViewport.addEventListener('resize',fit);visualViewport.addEventListener('scroll',fit)}window.addEventListener('resize',fit)}catch(e){}
   function openApp(){
     $('gate').hidden=true;$('app').hidden=false;document.body.classList.add('locked');fit();
-    showTab('tutor',true);loadChat();renderMsgs();renderLessons();showMins();if(get('flpass_'+unlocked)==='1')showUnlock();
+    setStage(stage);showTab('tutor',true);loadChat();renderMsgs();renderLessons();showMins();if(get('flpass_'+unlocked)==='1')showUnlock();
   }
   /* ---- tester reset: add ?reset=1 to the link to clear this phone's chat and minutes ---- */
-  try{if(/[?&]reset=1/.test(location.search)){Object.keys(localStorage).forEach(function(k){if(/^(flchat_|fltime_|flpass_)/.test(k))localStorage.removeItem(k)});for(var k in mem){if(/^(flchat_|fltime_|flpass_)/.test(k))delete mem[k]}secs=0;history.replaceState(null,'',location.pathname)}}catch(e){}
+  try{if(/[?&]reset=1/.test(location.search)){Object.keys(localStorage).forEach(function(k){if(/^(flchat_|fltime_|flpass_)/.test(k))localStorage.removeItem(k)});for(var k in mem){if(/^(flchat_|fltime_|flpass_)/.test(k))delete mem[k]}secs=0;stage='start';history.replaceState(null,'',location.pathname)}}catch(e){}
   /* ---- boot ---- */
   if(code){
     post({code:code,action:'state'}).then(function(r){
