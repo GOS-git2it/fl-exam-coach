@@ -73,7 +73,7 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
 .m.coach{background:var(--card);align-self:flex-start}
 .m.me{background:var(--teal);color:var(--ink);align-self:flex-end}
 .m.sys{background:transparent;border:2px dashed var(--line);color:var(--dim);align-self:stretch;text-align:center;max-width:100%}
-.quick{display:grid;grid-template-columns:2fr 1fr;gap:8px}
+.quick{display:grid;grid-template-columns:1fr;gap:8px}
 .sidecard{background:var(--card);border:3px solid var(--teal);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;animation:sidein .28s ease-out;flex-shrink:0}
 .sidehead{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:var(--display);font-size:19px;color:var(--teal);white-space:nowrap}
 .sidehead button{min-height:44px;padding:6px 16px;font-size:18px;white-space:nowrap}
@@ -124,9 +124,9 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
 <div class="wrap">
   <div id="leaveBox" hidden role="dialog" aria-modal="true" aria-labelledby="lvh"><div class="lvcard">
     <h2 id="lvh">Leave your quiz?</h2>
-    <p>You are in the middle of Lesson <b id="lvn">1</b>. If you leave now, this quiz starts over from question 1.</p>
+    <p>You are in the middle of Lesson <b id="lvn">1</b>. If you leave now, your day is saved and this quiz starts over from question 1.</p>
     <button id="lvStay" type="button" class="go">Keep going</button>
-    <button id="lvGo" type="button" class="ghost">Leave and start over</button>
+    <button id="lvGo" type="button" class="ghost">Save and leave</button>
   </div></div>
   <div id="gate" hidden>
     <span class="pill t">FL Exam 0220</span>
@@ -165,7 +165,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v35</span></p>
+          <p class="note"><span style="opacity:.8">Page v36</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -190,9 +190,8 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
           <div id="answers" class="answers" hidden>
             <button type="button" data-a="A">A</button><button type="button" data-a="B">B</button><button type="button" data-a="C">C</button><button type="button" data-a="D">D</button>
           </div>
-          <button id="qStop" class="stop">Stop for today</button>
         </div>
-        <p class="note hint">Start: the tutor names today's lesson. Then open the Lessons tab and listen. Come back here and tap Ready for your quiz. Stop for today: saves your daily log.</p>
+        <p class="note hint">Start: the tutor names today's lesson. Then open the Lessons tab and listen. Come back here and tap Ready for your quiz. The Home button saves your day.</p>
       </section>
     </div>
   </div>
@@ -285,14 +284,22 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   function leaveHome(){$('app').classList.remove('home');$('homeBtn').hidden=false}
   $('goClass').addEventListener('click',function(){leaveHome();showTab('lessons')});
   $('goTutor').addEventListener('click',function(){leaveHome();showTab('tutor')});
+  function saveDayQuietly(){
+    var dd=dayGet();
+    if(dd.a>0&&dd.sum!==dd.a&&code&&!busy){quietStop=true;sendText('stop');return true}
+    return false;
+  }
   $('homeBtn').addEventListener('click',function(){
     if(stage==='quiz'&&qz.a>0&&qz.a<10){$('lvn').textContent=unlocked;$('leaveBox').hidden=false;$('lvStay').focus();return}
-    showHome('');
+    var saving=saveDayQuietly();
+    showHome(saving?'Saving your day...':'');
   });
   $('lvStay').addEventListener('click',function(){$('leaveBox').hidden=true});
   $('lvGo').addEventListener('click',function(){
-    $('leaveBox').hidden=true;qz={a:0,c:0};saveQz();stopping=false;msgs=[];save();try{stopAudio()}catch(e){}selected=0;$('player').hidden=true;
-    setStage('ready');showHome('');
+    $('leaveBox').hidden=true;
+    var saving=saveDayQuietly();
+    qz={a:0,c:0};saveQz();msgs=[];save();try{stopAudio()}catch(e){}selected=0;$('player').hidden=true;
+    setStage('ready');showHome(saving?'Saving your day...':'');
   });
   /* ---- tabs ---- */
   var tab='tutor';
@@ -410,7 +417,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     if(retry){var r=document.createElement('button');r.textContent='Try again';r.style.marginLeft='12px';r.style.minHeight='44px';r.addEventListener('click',retry);b.appendChild(r)}
     else if(!keep)setTimeout(function(){if(b.textContent===t)b.hidden=true},9000);
   }
-  function setBusy(v){busy=v;['qMain','qStop','sendBtn','msg','answers'].forEach(function(i){$(i).disabled=v})}
+  function setBusy(v){busy=v;['qMain','sendBtn','msg','answers'].forEach(function(i){$(i).disabled=v})}
   var qz={a:0,c:0};try{qz=JSON.parse(get('flchat_qz')||'{"a":0,"c":0}')||{a:0,c:0}}catch(e){qz={a:0,c:0}}
   function saveQz(){set('flchat_qz',JSON.stringify(qz))}
   var RESULT=/^\W*(that is |that's |you are |you're )?(correct|right|incorrect|wrong|not quite)/i;
@@ -422,7 +429,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   function transcript(){
     return quizNote()+msgs.filter(function(m){return m.r!=='sys'}).slice(-24).map(function(m){return (m.r==='me'?'Student: ':'Coach: ')+m.t}).join('\n');
   }
-  var stopping=false;
+  var stopping=false,quietStop=false;
   function sendText(text){
     if(String(text).trim().toLowerCase()==='stop')stopping=true;
     text=(text||'').trim();if(!text||busy)return;
@@ -444,14 +451,15 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       });
     }
     ask().then(function(r){
-      msgs.splice(msgs.indexOf(wait),1);
+      var wx=msgs.indexOf(wait);if(wx>-1)msgs.splice(wx,1);
       if(r.status===401){code='';set('flcode','');showGate('Your code stopped working. Type it again.');return}
       var reply=(r.text||'').trim()||'The tutor did not answer. Tap the button again.';
       var m=/^DAILY\|.*$/m.exec(reply);
       if(m){
         reply=reply.replace(m[0],'').replace(/\n{3,}/g,'\n\n').trim();
-        logLine(m[0].trim());
+        logLine(m[0].trim(),stopping&&!quietStop);
       }
+      if(quietStop){quietStop=false;stopping=false;var qx=msgs.indexOf(meMsg);if(qx>-1)msgs.splice(qx,1);save();renderMsgs();if(!m&&$('app').classList.contains('home'))showHome('');return}
       var sideRep=false;
       if(/^\W*ASK\|/i.test(reply)){reply=reply.replace(/^\W*ASK\|\s*/i,'').trim();sideRep=true}
       var inOne=(stage==='quiz'||stage==='retry'||stage==='done');
@@ -471,6 +479,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       if(/(lesson|unit) passed/i.test(reply)){set('flpass_'+unlocked,'1');showUnlock()}
       save();renderMsgs();
     }).catch(function(){
+      if(quietStop){quietStop=false;stopping=false;if($('app').classList.contains('home'))showHome('')}
       var wi=msgs.indexOf(wait);if(wi>-1)msgs.splice(wi,1);
       var mi=msgs.indexOf(meMsg);if(mi>-1)msgs.splice(mi,1);
       save();renderMsgs();
@@ -485,7 +494,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     var d=dayGet(),f={};
     if(tutorLine){d.x=tutorLine;daySave(d)}
     var src=d.x||'';
-    src.split('|').forEach(function(p,i){if(i)f[p.trim().split(' ')[0]]=p.trim()});
+    src.split('|').forEach(function(p,i){if(i)f[p.trim().split(/[ :]/)[0]]=p.trim()});
     var ep='Ep'+pad2(unlocked);if(d.eps.indexOf(ep)<0){d.eps.push(ep);daySave(d)}
     var pct=d.a?Math.round(100*d.c/d.a):0;
     var rest=[f.weakest||'weakest FL law General Lines',f.missed||'missed: -',f.sections||'sections: -'];
@@ -496,11 +505,11 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     var line=buildLine('');
     post({code:code,action:'log',line:line,day:today}).catch(function(){});
   }
-  function logLine(line,silent){
+  function logLine(line,goHome){
     line=buildLine(line);
     if(line===lastLine)return;
     post({code:code,action:'log',line:line,day:today}).then(function(r){
-      if(r.status===200&&/saved/.test(r.text)){lastLine=line;if(silent)return;stopping=false;banner('Saved to your daily log. Nice work today.',true);setStage('start');showHome('Saved. Nice work today.')}
+      if(r.status===200&&/saved/.test(r.text)){lastLine=line;var d2=dayGet();d2.sum=d2.a;daySave(d2);stopping=false;if(goHome||$('app').classList.contains('home'))showHome('Saved. Nice work today.');else banner('Saved to your daily log. Nice work today.',true)}
       else banner('Your log did not save.',false,function(){logLine(line)});
     }).catch(function(){banner('Your log did not save. Check your internet.',false,function(){logLine(line)})});
   }
@@ -539,7 +548,6 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     else sendText('start');
   });
   $('answers').addEventListener('click',function(e){var a=e.target&&e.target.getAttribute&&e.target.getAttribute('data-a');if(a)sendText(a)});
-  $('qStop').addEventListener('click',function(){sendText('stop')});
   $('sendForm').addEventListener('submit',function(e){e.preventDefault();var v=$('msg').value;$('msg').value='';sendText(v)});
 
 
