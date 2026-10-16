@@ -180,7 +180,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v39</span></p>
+          <p class="note"><span style="opacity:.8">Page v40</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -292,8 +292,8 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   function passedCount(){var n=0;for(var i=1;i<=12;i++){if(get('flpass_'+i)==='1'||i<unlocked)n++}return n}
   function cheer(){
     var n=passedCount(),left=12-n,dd=dayGet(),pct=dd.a?Math.round(100*dd.c/dd.a):0,k=Math.floor(Date.now()/86400000)%2,base;
-    if(n===0)base=['Saved. Starting is the hardest part, and you did it.','Saved. Every question you answer makes the exam smaller.'][k];
-    else if(n<3)base=['Saved. '+n+' of 12 lessons passed. The base is going in.','Saved. '+n+(n===1?' lesson':' lessons')+' passed. Keep stacking them.'][k];
+    if(n===0)base=['Saved. You started. That counts.','Saved. Every question shrinks the exam.'][k];
+    else if(n<3)base=['Saved. '+n+' of 12 passed. You are off and running.','Saved. '+n+(n===1?' lesson':' lessons')+' passed. Keep stacking them.'][k];
     else if(n<6)base=['Saved. '+n+' of 12 passed. You are building real momentum.','Saved. '+n+' lessons passed. This is what progress looks like.'][k];
     else if(n===6)base='Saved. Halfway there. 6 lessons passed, 6 to go.';
     else if(n<10)base=['Saved. Past the halfway mark. '+left+' lessons to go.','Saved. '+n+' passed. The hard middle is behind you.'][k];
