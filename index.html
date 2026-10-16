@@ -241,7 +241,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       </div>
       <div class="cnew" aria-label="More courses coming">➕ New course <span>coming soon</span></div>
       <button id="introBtn" type="button" class="linkbtn" style="align-self:center">How it works</button>
-      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v82</p>
+      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v83</p>
     </section>
     <section id="cmenu" aria-label="Course menu">
       <button id="cBack" type="button" class="ghost">‹ All courses</button>
@@ -346,7 +346,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       $('gateBtn').disabled=false;
       if(r.status===401){showGate('That code is not right. Check the message from GiO and try again.');return}
       var u=parseUnlocked(r.text); if(u===null){showGate('Could not connect. Check your internet and try again.');return}
-      code=c;set('flcode',c);unlocked=u;openApp();if(get('flintro')!=='1')tourOpen();
+      code=c;set('flcode',c);unlocked=u;openApp();tourOpen();
     }).catch(function(){$('gateBtn').disabled=false;showGate('Could not connect. Check your internet and try again.')});
   });
 
@@ -751,7 +751,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     $('istep').textContent='Step '+(tourI+1)+' of '+TOUR.length;
     $('ititle').textContent=t[0];$('ivis').innerHTML=t[1];$('itext').textContent=t[2];
     $('iback').style.visibility=tourI?'visible':'hidden';
-    $('inext').textContent=last?'Let\'s go':'Next';$('iskip').hidden=last;
+    $('inext').textContent=last?'Let\'s go':'Next';$('iskip').hidden=last||get('flintro')!=='1';
     var d=$('idots');d.innerHTML='';TOUR.forEach(function(x,i){var e=document.createElement('i');if(i===tourI)e.className='on';d.appendChild(e)});
   }
   function tourOpen(){tourI=0;tourShow();$('intro').hidden=false;$('inext').focus()}
