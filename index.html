@@ -205,11 +205,11 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     <div class="cols">
       <section id="pnlL" class="panel" aria-labelledby="lh" hidden>
         <h2 id="lh">Your lessons</h2>
-        <p class="note">Listen here. Then tap I finished listening. Your tutor quizzes you next.</p>
+        <p class="note">Listen here. Then tap I finished listening. Your coach quizzes you next.</p>
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v56</span></p>
+          <p class="note"><span style="opacity:.8">Page v57</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -219,14 +219,14 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="lessons" class="lessons"></div>
       </section>
       <section id="pnlT" class="panel" aria-labelledby="th">
-        <h2 id="th">Your tutor</h2>
+        <h2 id="th">Your coach</h2>
         <p id="qprog" class="qprog" hidden></p>
         <div id="msgs" class="msgs" aria-live="polite"></div>
         <div id="banner" hidden></div>
         <button id="unlockBtn" class="go" hidden>Open next lesson</button>
         <form id="sendForm" class="send" autocomplete="off">
           <label for="msg" hidden>Your message</label>
-          <input id="msg" type="text" placeholder="Ask your tutor…" autocomplete="off">
+          <input id="msg" type="text" placeholder="Ask your coach…" autocomplete="off">
           <button id="sendBtn" type="submit" class="alt">Ask</button>
         </form>
         <div class="quick">
@@ -238,7 +238,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       </section>
     </div>
     <div class="tabs" role="tablist">
-      <button id="tabT" type="button" role="tab" aria-selected="true">💬 Tutor</button>
+      <button id="tabT" type="button" role="tab" aria-selected="true">💬 Coach</button>
       <button id="tabL" type="button" role="tab" aria-selected="false">🎧 Lessons<span id="newDot" class="dot" hidden>NEW</span></button>
     </div>
   </div>
@@ -431,9 +431,9 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     var n=selected;
     stopAudio();$('player').hidden=true;selected=0;renderLessons();
     setStage('ready');showTab('tutor');
-    banner('Nice. Now tap Ready. Your tutor will quiz you on Lesson '+n+'.',true,null,true);
+    banner('Nice. Now tap Ready. Your coach will quiz you on Lesson '+n+'.',true,null,true);
   });
-  /* Next lesson opens only after the tutor says the lesson is passed. */
+  /* Next lesson opens only after the coach says the lesson is passed. */
   function showUnlock(){
     var b=$('unlockBtn');b.textContent=unlocked<12?'Open Lesson '+(unlocked+1):'Lesson 12 passed. Finish the course';b.hidden=false;
   }
@@ -457,7 +457,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   function renderMsgs(){
     var box=$('msgs');box.innerHTML='';
     var one=(stage==='quiz'||stage==='retry'||stage==='done');box.classList.toggle('one',one);$('th').hidden=one;
-    if(!msgs.length){var s=document.createElement('div');s.className='m sys';s.textContent=(stage==='ready'?'Tap Ready when you want your quiz.':'Tap Start. Your tutor names today\'s lesson.');box.appendChild(s)}
+    if(!msgs.length){var s=document.createElement('div');s.className='m sys';s.textContent=(stage==='ready'?'Tap Ready when you want your quiz.':'Tap Start. Your coach names today\'s lesson.');box.appendChild(s)}
     var list=msgs;
     if(one){
       var lc=lastCoach(),tail=msgs[msgs.length-1];
@@ -471,7 +471,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     if(side&&one){
       card=document.createElement('div');card.className='sidecard';card.setAttribute('role','status');
       var h=document.createElement('div');h.className='sidehead';
-      var t=document.createElement('span');t.textContent='💡 Tutor says';
+      var t=document.createElement('span');t.textContent='💡 Coach says';
       var x=document.createElement('button');x.type='button';x.className='ghost';x.textContent='Got it';x.addEventListener('click',hideSide);
       h.appendChild(t);h.appendChild(x);
       var q=document.createElement('p');q.className='sideq';q.textContent='You asked: '+side.q;
@@ -523,7 +523,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     $('banner').hidden=true;
     if(stage==='quiz')touchQuiz();
     var meMsg={r:'me',t:text};msgs.push(meMsg);save();renderMsgs();setBusy(true);
-    var wait={r:'sys',t:'Your tutor is typing...'};msgs.push(wait);renderMsgs();
+    var wait={r:'sys',t:'Your coach is typing...'};msgs.push(wait);renderMsgs();
     var attempt=0;
     function ask(){
       return post({code:code,action:'chat',minutes:String(mins()),transcript:transcript(),retry:String(attempt)}).catch(function(e){
@@ -541,7 +541,8 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     ask().then(function(r){
       var wx=msgs.indexOf(wait);if(wx>-1)msgs.splice(wx,1);
       if(r.status===401){code='';set('flcode','');showGate('Your code stopped working. Type it again.');return}
-      var reply=(r.text||'').trim()||'The tutor did not answer. Tap the button again.';
+      var reply=(r.text||'').trim()||'The coach did not answer. Tap the button again.';
+      reply=reply.replace(/\btutoring\b/g,'coaching').replace(/\bTutoring\b/g,'Coaching').replace(/\btutored\b/g,'coached').replace(/\bTutored\b/g,'Coached').replace(/\btutors\b/g,'coaches').replace(/\btutor\b/g,'coach').replace(/\bTutor\b/g,'Coach');
       reply=reply.replace(/tabs? (?:is |are )?(?:at |on )?the top/ig,function(x){return x.replace(/top/i,'bottom')}).replace(/\b(Lessons|Tutor) tab at the top/g,'$1 tab at the bottom').replace(/\bthe top (Lessons|Tutor) tab/g,'the $1 tab at the bottom');
       var m=/^DAILY\|.*$/m.exec(reply);
       if(m){
@@ -572,7 +573,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       var wi=msgs.indexOf(wait);if(wi>-1)msgs.splice(wi,1);
       var mi=msgs.indexOf(meMsg);if(mi>-1)msgs.splice(mi,1);
       save();renderMsgs();
-      banner('Could not reach your tutor. Tap Try again.',false,function(){$('banner').hidden=true;sendText(text)});
+      banner('Could not reach your coach. Tap Try again.',false,function(){$('banner').hidden=true;sendText(text)});
     }).then(function(){setBusy(false);$('msg').focus&&0});
   }
   var UNITOF=[0,1,1,1,2,2,2,3,3,4,5,6,7];
