@@ -93,6 +93,32 @@ section.panel{background:var(--bg2);border:2px solid var(--line);border-radius:2
 #sideBox[hidden]{display:none}
 .sbcard{border-color:var(--teal)!important;max-height:80vh;overflow-y:auto;animation:sidein .25s ease-out}
 .linkbtn{background:transparent;border:0;color:var(--teal);text-decoration:underline;font:inherit;font-weight:800;font-size:19px;min-height:44px;padding:6px 10px;align-self:flex-start}
+
+#intro{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;padding:16px;gap:12px;overflow-y:auto}
+#intro[hidden]{display:none}
+#intro .itop{display:flex;justify-content:space-between;align-items:center;min-height:44px}
+#intro .itop span{color:var(--dim);font-size:18px}
+#intro .itop button{min-height:44px;padding:6px 14px;font-size:18px}
+#intro .ibody{flex:1;display:flex;flex-direction:column;gap:16px;justify-content:center;min-height:0}
+#intro h2{font-size:32px}
+#intro p{margin:0;font-size:21px;line-height:1.4}
+#intro .ivis{background:var(--bg2);border:2px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;align-items:stretch}
+.ivis .row{display:flex;gap:8px;align-items:center}
+.ivis .pill{border-radius:14px;padding:12px 16px;font-weight:800;text-align:center;flex:1;color:var(--ink)}
+.ivis .y{background:#FFD84D}.ivis .g{background:#4CD27A}.ivis .t{background:var(--teal)}
+.ivis .d{background:var(--card);color:var(--fg);border:2px solid var(--line)}
+.ivis .lrow{display:flex;gap:12px;align-items:center;border-radius:14px;padding:10px 14px;background:#FFD84D;color:#14213D;font-weight:800}
+.ivis .lrow.lk{background:var(--bg);color:var(--dim)}
+.ivis .lrow b{font-family:var(--display);font-size:26px;min-width:30px;text-align:center}
+.ivis .lrow i{margin-left:auto;font-style:normal;font-size:14px;background:#14213D;color:#FFD84D;border-radius:999px;padding:4px 10px}
+.ivis .lrow.lk i{background:#F5F7FA;color:#14213D}
+.ivis .box{border:3px solid var(--line);border-radius:14px;padding:12px 14px;color:var(--dim);background:var(--bg);display:flex;justify-content:space-between;align-items:center;flex:1}
+.ivis img{width:96px;height:96px;border-radius:22px;align-self:center}
+#intro .idots{display:flex;gap:8px;justify-content:center}
+#intro .idots i{width:12px;height:12px;border-radius:50%;background:var(--line)}
+#intro .idots i.on{background:#FFD84D}
+#intro .inav{display:flex;gap:10px}
+#intro .inav button{flex:1;min-height:60px;font-size:22px}
 @keyframes sidein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.sidecard{animation:none}}
 .qprog{font-size:18px;font-weight:800;color:var(--fg);margin:0}
@@ -176,6 +202,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
 
 
 <div class="wrap">
+  <div id="intro" hidden role="dialog" aria-modal="true" aria-label="How the app works"><div class="itop"><span id="istep"></span><button id="iskip" type="button" class="ghost">Skip</button></div><div class="ibody"><h2 id="ititle"></h2><div id="ivis" class="ivis"></div><p id="itext"></p></div><div class="idots" id="idots"></div><div class="inav"><button id="iback" type="button" class="ghost">Back</button><button id="inext" type="button" class="alt" style="background:#FFD84D">Next</button></div></div>
   <div id="sideBox" hidden role="dialog" aria-modal="true" aria-labelledby="sbh"><div class="lvcard sbcard"><div class="sidehead"><span id="sbh">💡 Your hints</span><button id="sbClose" type="button" class="ghost">Got it</button></div><div id="sbl"></div></div></div>
   <div id="leaveBox" hidden role="dialog" aria-modal="true" aria-labelledby="lvh"><div class="lvcard">
     <h2 id="lvh">Leave your quiz?</h2>
@@ -213,7 +240,8 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <p class="copen">Tap to open your course ›</p>
       </div>
       <div class="cnew" aria-label="More courses coming">➕ New course <span>coming soon</span></div>
-      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v81</p>
+      <button id="introBtn" type="button" class="linkbtn" style="align-self:center">How it works</button>
+      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v82</p>
     </section>
     <section id="cmenu" aria-label="Course menu">
       <button id="cBack" type="button" class="ghost">‹ All courses</button>
@@ -318,7 +346,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       $('gateBtn').disabled=false;
       if(r.status===401){showGate('That code is not right. Check the message from GiO and try again.');return}
       var u=parseUnlocked(r.text); if(u===null){showGate('Could not connect. Check your internet and try again.');return}
-      code=c;set('flcode',c);unlocked=u;openApp();
+      code=c;set('flcode',c);unlocked=u;openApp();if(get('flintro')!=='1')tourOpen();
     }).catch(function(){$('gateBtn').disabled=false;showGate('Could not connect. Check your internet and try again.')});
   });
 
@@ -705,6 +733,33 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     setStage(stage);showTab('tutor',true);loadChat();renderMsgs();renderLessons();showMins();if(get('flpass_'+unlocked)==='1')showUnlock();
     showHome('');
   }
+
+  /* ---- first sign-in tour ---- */
+  var TOUR=[
+    ['Welcome to your Exam Coach','<img src="icons/icon-192.png" alt="">','Your coach for the Florida General Lines exam (0220). 12 audio lessons. A short quiz after each one. This tour takes one minute.'],
+    ['Start on Home','<div class="lrow"><b>🏛️</b>Florida General Lines<i>OPEN</i></div><div class="pill y">🎓 Get coached 🎓</div>','Tap the Florida General Lines card. Then tap the big yellow button.'],
+    ['Tap Start','<div class="pill g">Start</div>','Your coach names today\'s lesson and tells you what to do next.'],
+    ['Listen to the lesson','<div class="row"><div class="pill d">💬 Coach</div><div class="pill y">🎧 Lessons</div></div><div class="lrow"><b>1</b>Today\'s lesson<i>NEXT</i></div><div class="pill t">I finished listening</div>','Tap the Lessons tab at the bottom. Tap the yellow lesson and listen. When it ends, tap I finished listening.'],
+    ['Take the quiz','<div class="pill g">Ready</div><div class="row"><div class="pill t">A</div><div class="pill t">B</div><div class="pill t">C</div><div class="pill t">D</div></div>','Tap Ready. You get 10 questions, one at a time. Tap A, B, C or D. Score 80% or higher to pass.'],
+    ['Ask for help any time','<div class="row"><div class="box">Ask…<span>💡</span></div><div class="pill y" style="flex:none">Ask</div></div>','Type a question in the box. Ask for a hint and a 💡 shows up. Tap it to read your hints again. A hint is a nudge. It never gives the answer.'],
+    ['Pass and move on','<div class="lrow"><b>1</b>Lesson 1<i>DONE</i></div><div class="lrow"><b>2</b>Lesson 2<i>NEXT</i></div><div class="lrow lk"><b>3</b>Lesson 3<i>🔒 LOCKED</i></div>','Pass the quiz and your coach says Lesson passed. Tap the green button and the next lesson opens. Lessons open one at a time.'],
+    ['You are all set','<div class="pill y">🏠 Home</div>','Study 1 to 2 hours a day. Tap Home when you finish and your session is saved. You can replay this tour with How it works on the Home screen.']
+  ];
+  var tourI=0;
+  function tourShow(){
+    var t=TOUR[tourI],last=tourI===TOUR.length-1;
+    $('istep').textContent='Step '+(tourI+1)+' of '+TOUR.length;
+    $('ititle').textContent=t[0];$('ivis').innerHTML=t[1];$('itext').textContent=t[2];
+    $('iback').style.visibility=tourI?'visible':'hidden';
+    $('inext').textContent=last?'Let\'s go':'Next';$('iskip').hidden=last;
+    var d=$('idots');d.innerHTML='';TOUR.forEach(function(x,i){var e=document.createElement('i');if(i===tourI)e.className='on';d.appendChild(e)});
+  }
+  function tourOpen(){tourI=0;tourShow();$('intro').hidden=false;$('inext').focus()}
+  function tourClose(){$('intro').hidden=true;set('flintro','1')}
+  $('inext').addEventListener('click',function(){if(tourI>=TOUR.length-1){tourClose();return}tourI++;tourShow()});
+  $('iback').addEventListener('click',function(){if(tourI>0){tourI--;tourShow()}});
+  $('iskip').addEventListener('click',tourClose);
+  $('introBtn').addEventListener('click',tourOpen);
   /* ---- tester reset: add ?reset=1 to the link to clear this phone's chat and minutes ---- */
   try{if(/[?&]reset=1/.test(location.search)){Object.keys(localStorage).forEach(function(k){if(/^(flchat_|fltime_|flpass_)/.test(k))localStorage.removeItem(k)});for(var k in mem){if(/^(flchat_|fltime_|flpass_)/.test(k))delete mem[k]}secs=0;stage='start';qz={a:0,c:0};history.replaceState(null,'',location.pathname)}}catch(e){}
   /* ---- boot ---- */
