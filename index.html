@@ -227,7 +227,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v67</span></p>
+          <p class="note"><span style="opacity:.8">Page v68</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -589,10 +589,11 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       var sideRep=false;
       if(/^\W*ASK\|/i.test(reply)){reply=reply.replace(/^\W*ASK\|\s*/i,'').trim();reply=reply.replace(/\s*(?:please\s+)?(?:take|make) (?:your|a) best guess[^.!?\n]*[.!?]?/ig,'').replace(/\s*(?:please\s+)?(?:pick|choose|tap|select)(?: one of)? (?:option |the answer |your answer )?(?:A, B, C,? (?:or|and) D|a letter|an option)[^.!?\n]*[.!?]?/ig,'').trim()||reply;sideRep=true}
       var inOne=(stage==='quiz'||stage==='retry'||stage==='done');
+      if(sideRep&&/^\s*(start|go|ready|next|stop|[abcd]|i finished listening)\W*$/i.test(text))sideRep=false;
       if(sideRep&&inOne&&reply){
         msgs.push({r:'coach',t:reply,side:true});side.push({q:text,a:reply});sideOpen=true;var dh=dayGet();dh.h=(dh.h||0)+1;daySave(dh);if(dh.a>0)autoSave();save();renderMsgs();return;
       }
-      if(reply){msgs.push({r:'coach',t:reply});side=[]}
+      if(reply){msgs.push({r:'coach',t:reply});side=[];sideOpen=false}
       if(m)stopping=false;
       if(stopping&&!m){stopping=false;save();renderMsgs();setStage('start');showHome(cheer());return}
       if(stage==='quiz'&&RESULT.test(reply)&&!isQuestion(reply)){
@@ -666,7 +667,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
     b.textContent='Next question';
     q.classList.toggle('solo',b.hidden&&a.hidden);
   }
-  function setStage(x){stage=x;set('flchat_stage',x);side=[];renderMsgs()}
+  function setStage(x){stage=x;set('flchat_stage',x);side=[];sideOpen=false;renderMsgs()}
   $('qMain').addEventListener('click',function(){
     if(stage==='retry'){showTab('lessons');return}
     if(stage==='ready'){qz={a:0,c:0};saveQz();setStage('quiz');touchQuiz();sendText('ready')}
