@@ -118,8 +118,20 @@ body.locked #pnlT{overflow:hidden}
 body.locked #pnlT>*:not(.msgs){flex-shrink:0}
 #unlockBtn{min-height:64px;font-size:21px;line-height:1.2}
 #home{display:none;flex-direction:column;gap:16px;justify-content:safe center;flex:1 1 auto;min-height:0;overflow-y:auto}
-@media(max-height:700px){#home{gap:10px}#home button{min-height:72px!important;font-size:23px!important}#home h2{font-size:26px!important}}
+@media(max-height:700px){#home{gap:10px}#home button,#cmenu button:not(#cBack){min-height:72px!important;font-size:23px!important}#home h2{font-size:26px!important}}
 #app.home #home{display:flex}
+#cmenu{display:none;flex-direction:column;gap:16px;justify-content:safe center;flex:1 1 auto;min-height:0;overflow-y:auto}
+#app.home.cmenu #home{display:none}
+#app.home.cmenu #cmenu{display:flex}
+#cmenu .ctop{display:flex;gap:12px;align-items:center}
+#cmenu .cemoji{font-size:44px;line-height:1}
+#cmenu .ctitle{font-family:var(--display);font-size:28px;line-height:1.1}
+#cmenu .csub{font-size:17px;color:var(--dim)}
+#cmenu .hnext{font-size:19px;margin:0}
+#cmenu button{min-height:96px;font-size:26px;line-height:1.2;background:#FFD84D;color:#14213D}
+#cmenu #cBack{min-height:48px;font-size:18px;align-self:flex-start;padding:6px 16px;background:var(--card);color:var(--fg);border:2px solid var(--line)}
+#home .course{cursor:pointer}
+#home .copen{margin:0;font-weight:800;color:#FFD84D;font-size:18px}
 #app.home .tabs,#app.home .cols{display:none}
 #home h2{font-size:30px;margin:0}
 #home .hmsg{border-radius:14px;padding:12px 16px;background:var(--teal);color:var(--ink);font-weight:800}
@@ -176,14 +188,20 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
       <h2>Welcome back</h2>
       <p id="hmsg" class="hmsg" hidden></p>
       <p class="clabel">My courses</p>
-      <div class="course" id="course1">
+      <div class="course" id="course1" role="button" tabindex="0" aria-label="Open Florida General Lines course">
         <div class="ctop"><span class="cemoji" aria-hidden="true">🏛️</span><div><div class="ctitle">Florida General Lines</div><div class="csub">Exam 0220 &middot; 12 lessons</div></div></div>
         <div id="hprog" class="hprog" aria-label="Lessons passed"></div>
         <p id="hnext" class="hnext"></p>
+        <p class="copen">Tap to open your course ›</p>
       </div>
+      <div class="cnew" aria-label="More courses coming">➕ New course <span>coming soon</span></div>
+    </section>
+    <section id="cmenu" aria-label="Course menu">
+      <button id="cBack" type="button" class="ghost">‹ All courses</button>
+      <div class="ctop"><span class="cemoji" aria-hidden="true">🏛️</span><div><div class="ctitle">Florida General Lines</div><div class="csub">Exam 0220 &middot; 12 lessons</div></div></div>
+      <p id="cnext" class="hnext"></p>
       <button id="goTutor" type="button" class="alt">💬 Get tutored 💬</button>
       <button id="goClass" type="button" class="go">🎧 Go to class 🎧</button>
-      <div class="cnew" aria-label="More courses coming">➕ New course <span>coming soon</span></div>
     </section>
     <div class="cols">
       <section id="pnlL" class="panel" aria-labelledby="lh" hidden>
@@ -192,7 +210,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
           <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
-          <p class="note"><span style="opacity:.8">Page v52</span></p>
+          <p class="note"><span style="opacity:.8">Page v53</span></p>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -327,13 +345,17 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
   }
   function showHome(msg){
     try{$('frame').pause()}catch(e){}
-    $('app').classList.add('home');$('homeBtn').hidden=true;side=null;
+    $('app').classList.add('home');$('app').classList.remove('cmenu');$('homeBtn').hidden=true;side=null;
     var m=$('hmsg');m.textContent=msg||'';m.hidden=!msg;
-    $('hnext').textContent='Next up: Lesson '+unlocked+', '+LESSONS[unlocked-1][0]+'.';
+    $('hnext').textContent=$('cnext').textContent='Next up: Lesson '+unlocked+', '+LESSONS[unlocked-1][0]+'.';
     drawProg();showMins();
   }
   document.addEventListener('visibilitychange',function(){if(!document.hidden)checkStale()});
-  function leaveHome(){checkStale();$('app').classList.remove('home');$('homeBtn').hidden=false}
+  function leaveHome(){checkStale();$('app').classList.remove('home');$('app').classList.remove('cmenu');$('homeBtn').hidden=false}
+  function openCourse(){$('app').classList.add('cmenu')}
+  $('course1').addEventListener('click',openCourse);
+  $('course1').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openCourse()}});
+  $('cBack').addEventListener('click',function(){$('app').classList.remove('cmenu')});
   $('goClass').addEventListener('click',function(){leaveHome();showTab('lessons')});
   $('goTutor').addEventListener('click',function(){leaveHome();showTab('tutor')});
   function saveDayQuietly(){
