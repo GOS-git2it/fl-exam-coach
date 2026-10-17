@@ -247,7 +247,7 @@ header.top{position:relative}
         <p class="copen">Tap to open your course ›</p>
       </div>
       <div class="cnew" aria-label="More courses coming">➕ New course <span>coming soon</span></div>
-      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v86</p>
+      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v87</p>
     </section>
     <section id="cmenu" aria-label="Course menu">
       <button id="cBack" type="button" class="ghost">‹ All courses</button>
@@ -395,6 +395,7 @@ header.top{position:relative}
     h.appendChild(d);h.appendChild(t);
   }
   var hmT=0;
+  function setNextTitle(){document.title='FL Exam Coach - Next: Lesson '+unlocked+': '+LESSONS[unlocked-1][0]}
   function showHome(msg){
     try{$('frame').pause()}catch(e){}
     $('app').classList.add('home');$('app').classList.remove('cmenu');setTitle(false);$('homeBtn').hidden=true;side=[];sideOpen=false;syncSide(false);
@@ -403,7 +404,7 @@ header.top{position:relative}
     else{m.classList.remove('fade');m.textContent=msg||'';m.hidden=!msg}
     if(msg){var ms=msg.length<12?3500:Math.min(11000,3500+msg.length*70);hmT=setTimeout(function(){m.classList.add('fade');hmT=setTimeout(function(){m.hidden=true;m.classList.remove('fade')},700)},ms)}
     $('hnext').textContent=$('cnext').textContent='Next up: Lesson '+unlocked+', '+LESSONS[unlocked-1][0]+'.';
-    drawProg();showMins();
+    setNextTitle();drawProg();showMins();
   }
   document.addEventListener('visibilitychange',function(){if(!document.hidden)checkStale()});
   function setTitle(fl){$('appPill').hidden=!fl;$('appTitle').textContent=fl?'Your FL Exam Coach':'Your Exam Coach'}
@@ -475,7 +476,7 @@ header.top{position:relative}
       navigator.mediaSession.setActionHandler('seekforward',function(){a.currentTime=Math.min(a.duration||1e9,a.currentTime+15)});
     }catch(e){}
   }
-  ['loadstart','loadedmetadata','canplay','play','playing','pause'].forEach(function(e){$('frame').addEventListener(e,function(){if(selected){setLockScreen(selected);setTimeout(function(){if(selected)setLockScreen(selected)},800)}})});
+  ['loadstart','loadedmetadata','canplay','play','playing','pause'].forEach(function(e){$('frame').addEventListener(e,function(){if(selected&&!$('app').classList.contains('home')){setLockScreen(selected);setTimeout(function(){if(selected&&!$('app').classList.contains('home'))setLockScreen(selected)},800)}})});
   $('frame').addEventListener('contextmenu',function(e){e.preventDefault()});
   function stopAudio(){var a=$('frame');try{a.pause()}catch(e){}a.removeAttribute('src');a.load()}
   function openPlayer(n,quiet){
@@ -503,7 +504,7 @@ header.top{position:relative}
     post({code:code,action:'done',n:String(n)}).then(function(){return post({code:code,action:'state'})}).then(function(r){
       var u=parseUnlocked(r.text);b.disabled=false;
       if(u===null){banner('Could not save. Check your internet and tap again.',false);return}
-      set('flpass_'+n,'');unlocked=u;selected=0;setStage('start');b.hidden=true;renderLessons();
+      set('flpass_'+n,'');unlocked=u;selected=0;setNextTitle();setStage('start');b.hidden=true;renderLessons();
       banner(n>=12?'All 12 lessons passed. Great work. Tap Start to review.':'Lesson '+n+' complete. Lesson '+u+' is open. Tap Start. Then open the Lessons tab.',true,null,true);
       $('newDot').hidden=false;showTab('tutor');
     }).catch(function(){b.disabled=false;banner('Could not save. Check your internet and tap again.',false)});
