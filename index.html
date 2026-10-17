@@ -200,6 +200,7 @@ body.locked #pnlT>*:not(.msgs){flex-shrink:0}
 #introBtn{display:none;min-height:40px;padding:4px 12px;font-size:16px;background:var(--card);color:var(--fg);border:2px solid var(--line)}
 #app.home:not(.cmenu) #introBtn{display:inline-flex;align-items:center;position:absolute;top:0;right:0;min-height:36px;padding:2px 10px;font-size:15px}
 header.top{position:relative}
+@media(min-width:1000px){header.top .today{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}}
 #homeBtn{min-height:44px;padding:6px 14px;font-size:17px;background:var(--card);color:var(--fg);border:2px solid var(--line)}
 @media(max-width:999px){body.locked h1{font-size:24px}body.locked .pill.t{display:none}}
 </style>
@@ -246,7 +247,7 @@ header.top{position:relative}
         <p class="copen">Tap to open your course ›</p>
       </div>
       <div class="cnew" aria-label="More courses coming">➕ New course <span>coming soon</span></div>
-      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v85</p>
+      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v86</p>
     </section>
     <section id="cmenu" aria-label="Course menu">
       <button id="cBack" type="button" class="ghost">‹ All courses</button>
@@ -260,7 +261,7 @@ header.top{position:relative}
         <p class="note">Tap the yellow lesson to play it. Then tap I finished listening. Your coach quizzes you next.</p>
         <div id="player" class="player" hidden>
           <h3 id="ptitle"></h3>
-          <audio id="frame" controls preload="metadata" title="Lesson audio"></audio>
+          <audio id="frame" controls controlsList="nodownload" preload="metadata" title="Lesson audio"></audio>
           <div class="row">
             <button id="finish" class="alt" hidden>I finished listening</button>
           </div>
@@ -475,6 +476,7 @@ header.top{position:relative}
     }catch(e){}
   }
   ['loadstart','loadedmetadata','canplay','play','playing','pause'].forEach(function(e){$('frame').addEventListener(e,function(){if(selected){setLockScreen(selected);setTimeout(function(){if(selected)setLockScreen(selected)},800)}})});
+  $('frame').addEventListener('contextmenu',function(e){e.preventDefault()});
   function stopAudio(){var a=$('frame');try{a.pause()}catch(e){}a.removeAttribute('src');a.load()}
   function openPlayer(n,quiet){
     selected=n;confirmFinish=false;
