@@ -247,7 +247,7 @@ header.top{position:relative}
         <p class="copen">Tap to open your course ›</p>
       </div>
       <div class="cnew" aria-label="More courses coming">➕ New course <span>coming soon</span></div>
-      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v89</p>
+      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v90</p>
     </section>
     <section id="cmenu" aria-label="Course menu">
       <button id="cBack" type="button" class="ghost">‹ All courses</button>
@@ -331,7 +331,7 @@ header.top{position:relative}
     var body=new URLSearchParams(params);
     return fetch(API,{method:'POST',body:body}).then(function(r){return r.text().then(function(t){return {status:r.status,text:t}})});
   }
-  function parseUnlocked(t){var m=/unlocked=(\d+)/.exec(t);return m?Math.max(1,Math.min(12,parseInt(m[1],10))):null}
+  function parseUnlocked(t){var m=/unlocked=(\d+)/.exec(t);if(!m)return null;var raw=parseInt(m[1],10);if(raw>=13)set('flpass_all','1');return Math.max(1,Math.min(12,raw))}
 
   /* ---- timer: counts time the page is open and in use ---- */
   ['click','keydown','touchstart','scroll'].forEach(function(e){window.addEventListener(e,function(){lastActive=Date.now()},{passive:true})});
@@ -492,7 +492,7 @@ header.top{position:relative}
   function openPlayer(n,quiet){
     selected=n;confirmFinish=false;
     $('ptitle').textContent='Lesson '+n+': '+LESSONS[n-1][0];
-    $('frame').src='audio/lesson'+n+'.m4a?v=89';
+    $('frame').src='audio/lesson'+n+'.m4a?v=90';
     $('player').hidden=false;
     setLockScreen(n);
     var f=$('finish');f.hidden=(n!==unlocked);f.textContent='I finished listening';
@@ -608,6 +608,13 @@ header.top{position:relative}
     else t+=' Perfect run.';
     return t+'\nDo not book your retake yet. Tell GiO your score.';
   }
+  function logExam(){
+    var ms=[],l;for(l in ex.miss)ms.push([l,ex.miss[l]]);
+    ms.sort(function(a,b){return b[1]-a[1]||a[0]-b[0]});
+    var params={code:code,action:'exam',correct:String(ex.c),missed:ms.map(function(m){return 'L'+m[0]+' ('+m[1]+')'}).join(', ')};
+    function go(n){post(params).then(function(r){if(!(r.status===200&&/saved/.test(r.text))&&n<3)setTimeout(function(){go(n+1)},4000*(n+1))}).catch(function(){if(n<3)setTimeout(function(){go(n+1)},4000*(n+1))})}
+    go(0);
+  }
   function examNote(){
     var ns=msgs.filter(function(m){return m.r!=='sys'}),tm=ns[ns.length-1];
     var cmd=(tm&&tm.r==='me'&&/^\s*(ready|next)\W*$/i.test(tm.t))?'The student message is a button command. NO question is waiting. Any earlier question in the transcript is finished. Ask the next question now in the QUESTION FORMAT. ':'';
@@ -682,7 +689,7 @@ header.top{position:relative}
       if(stopping&&!m){stopping=false;save();renderMsgs();setStage('start');showHome(cheer());return}
       if(wasEx&&stage==='quiz'&&RESULT.test(reply)&&!isQuestion(reply)){
         touchQuiz();var rtx=RIGHT.test(reply),Lr=ex.sched[Math.min(ex.k,49)];ex.k++;if(rtx)ex.c++;else ex.miss[Lr]=(ex.miss[Lr]||0)+1;
-        if(ex.k>=50){ex.on=0;ex.fin=1;var lm=msgs[msgs.length-1];if(lm&&lm.r==='coach')lm.t+='\n\n'+examReport();setStage('done')}
+        if(ex.k>=50){ex.on=0;ex.fin=1;logExam();var lm=msgs[msgs.length-1];if(lm&&lm.r==='coach')lm.t+='\n\n'+examReport();setStage('done')}
         saveEx();
       }
       else if(stage==='quiz'&&RESULT.test(reply)&&!isQuestion(reply)){
