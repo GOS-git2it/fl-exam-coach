@@ -247,7 +247,7 @@ header.top{position:relative}
         <p class="copen">Tap to open your course ›</p>
       </div>
       <div class="cnew" aria-label="More courses coming">➕ New course <span>coming soon</span></div>
-      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v90</p>
+      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v91</p>
     </section>
     <section id="cmenu" aria-label="Course menu">
       <button id="cBack" type="button" class="ghost">‹ All courses</button>
@@ -492,7 +492,7 @@ header.top{position:relative}
   function openPlayer(n,quiet){
     selected=n;confirmFinish=false;
     $('ptitle').textContent='Lesson '+n+': '+LESSONS[n-1][0];
-    $('frame').src='audio/lesson'+n+'.m4a?v=90';
+    $('frame').src='audio/lesson'+n+'.m4a?v=91';
     $('player').hidden=false;
     setLockScreen(n);
     var f=$('finish');f.hidden=(n!==unlocked);f.textContent='I finished listening';
@@ -618,8 +618,8 @@ header.top{position:relative}
   function examNote(){
     var ns=msgs.filter(function(m){return m.r!=='sys'}),tm=ns[ns.length-1];
     var cmd=(tm&&tm.r==='me'&&/^\s*(ready|next)\W*$/i.test(tm.t))?'The student message is a button command. NO question is waiting. Any earlier question in the transcript is finished. Ask the next question now in the QUESTION FORMAT. ':'';
-    var L=ex.sched[Math.min(ex.k,49)],prev=(ex.stems[L]||[]).join(' || ');
-    return cmd+'PAGE NOTE (from the page, not the student): PRACTICE EXAM mode, question '+(ex.k+1)+' of 50. This overrides the lesson loop. When you ask a question, draw it ONLY from the TAUGHT FACTS of Lesson '+L+'. Do not repeat or reword a fact already asked from that lesson: '+(prev||'none yet')+'. Ask ONE multiple-choice question in the QUESTION FORMAT, four options, one correct, nothing else in that message. When the student message is a letter or an answer, reply in this exact shape: the first word is Correct. or Incorrect. Then one short line with the right answer and the statute number if there is one. Then: Tap Next question. No memory tricks. Never say Lesson passed. Never say READY TO BOOK. Never give a running score or a final score; the page does that. NO HINTS in the practice exam: if a question is waiting and the student asks anything, begin with ASK| and say only: No hints during the practice exam.\n';
+    var L=ex.sched[Math.min(ex.k,49)],prev=[],pl;for(pl in ex.stems)ex.stems[pl].forEach(function(x){prev.push(x.slice(0,80))});prev=prev.join(' || ');
+    return cmd+'PAGE NOTE (from the page, not the student): PRACTICE EXAM mode, question '+(ex.k+1)+' of 50. This overrides the lesson loop. When you ask a question, draw it ONLY from the TAUGHT FACTS of Lesson '+L+'. Do not repeat or reword a fact already asked in this exam, even if it came from another lesson. Pick a different fact from Lesson '+L+'. Already asked: '+(prev||'none yet')+'. Ask ONE multiple-choice question in the QUESTION FORMAT, four options, one correct, nothing else in that message. When the student message is a letter or an answer, reply in this exact shape: the first word is Correct. or Incorrect. Then one short line with the right answer and the statute number if there is one. Then: Tap Next question. No memory tricks. Never say Lesson passed. Never say READY TO BOOK. Never give a running score or a final score; the page does that. NO HINTS in the practice exam: if a question is waiting and the student asks anything, begin with ASK| and say only: No hints during the practice exam.\n';
   }
   var RESULT=/^\W*(that is |that's |you are |you're )?(correct|right|incorrect|wrong|not quite)/i;
   var RIGHT=/^\W*(that is |that's |you are |you're )?(correct|right)\b/i;
