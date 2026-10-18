@@ -252,7 +252,7 @@ header.top{position:relative}
         <p class="copen">Tap to open your course ›</p>
       </div>
       <div class="cnew" aria-label="More courses coming">➕ New course <span>coming soon</span></div>
-      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v93 &middot; Pull down on this screen to refresh</p>
+      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v94 &middot; Pull down on this screen to refresh</p>
     </section>
     <section id="cmenu" aria-label="Course menu">
       <button id="cBack" type="button" class="ghost">‹ All courses</button>
@@ -497,7 +497,7 @@ header.top{position:relative}
   function openPlayer(n,quiet){
     selected=n;confirmFinish=false;
     $('ptitle').textContent='Lesson '+n+': '+LESSONS[n-1][0];
-    $('frame').src='audio/lesson'+n+'.m4a?v=93';
+    $('frame').src='audio/lesson'+n+'.m4a?v=94';
     $('player').hidden=false;
     setLockScreen(n);
     var f=$('finish');f.hidden=(n!==unlocked);f.textContent='I finished listening';
@@ -836,6 +836,8 @@ header.top{position:relative}
   var wantExam=false;try{wantExam=/[?&]exam=1/.test(location.search)}catch(e){}
   /* ---- tester reset: add ?reset=1 to the link to clear this phone's chat and minutes ---- */
   try{if(/[?&]reset=1/.test(location.search)){Object.keys(localStorage).forEach(function(k){if(/^(flchat_|fltime_|flpass_)/.test(k))localStorage.removeItem(k)});for(var k in mem){if(/^(flchat_|fltime_|flpass_)/.test(k))delete mem[k]}secs=0;stage='start';qz={a:0,c:0};ex={on:0,k:0,c:0,sched:[],miss:{},stems:{},fin:0};history.replaceState(null,'',location.pathname)}}catch(e){}
+  /* ---- tester sign-out: add ?signout=1 to the link to forget the code on this phone and start from the code screen ---- */
+  try{if(/[?&]signout=1/.test(location.search)){Object.keys(localStorage).forEach(function(k){if(/^(flcode|flchat_|fltime_|flpass_)/.test(k))localStorage.removeItem(k)});for(var k2 in mem){if(/^(flcode|flchat_|fltime_|flpass_)/.test(k2))delete mem[k2]}code='';secs=0;stage='start';qz={a:0,c:0};ex={on:0,k:0,c:0,sched:[],miss:{},stems:{},fin:0};history.replaceState(null,'',location.pathname)}}catch(e){}
   try{if(wantExam){set('flpass_all','1');history.replaceState(null,'',location.pathname)}}catch(e){}
   /* ---- pull down on Home to refresh (the Home Screen app has no browser refresh) ---- */
   (function(){
