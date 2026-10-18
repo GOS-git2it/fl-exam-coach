@@ -247,7 +247,7 @@ header.top{position:relative}
         <p class="copen">Tap to open your course ›</p>
       </div>
       <div class="cnew" aria-label="More courses coming">➕ New course <span>coming soon</span></div>
-      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v87</p>
+      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v88</p>
     </section>
     <section id="cmenu" aria-label="Course menu">
       <button id="cBack" type="button" class="ghost">‹ All courses</button>
@@ -482,7 +482,7 @@ header.top{position:relative}
   function openPlayer(n,quiet){
     selected=n;confirmFinish=false;
     $('ptitle').textContent='Lesson '+n+': '+LESSONS[n-1][0];
-    $('frame').src='audio/lesson'+n+'.m4a';
+    $('frame').src='audio/lesson'+n+'.m4a?v=88';
     $('player').hidden=false;
     setLockScreen(n);
     var f=$('finish');f.hidden=(n!==unlocked);f.textContent='I finished listening';
