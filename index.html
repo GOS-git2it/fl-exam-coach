@@ -205,10 +205,13 @@ header.top{position:relative}
 @media(min-width:1000px){header.top .today{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}}
 #homeBtn{min-height:44px;padding:6px 14px;font-size:17px;background:var(--card);color:var(--fg);border:2px solid var(--line)}
 @media(max-width:999px){body.locked h1{font-size:24px}body.locked .pill.t{display:none}}
+#ptr{position:fixed;top:0;left:50%;z-index:45;transform:translate(-50%,-70px);background:var(--card);color:var(--fg);border:2px solid #FFD84D;border-radius:999px;padding:8px 20px;font-size:17px;font-weight:800;white-space:nowrap;pointer-events:none;opacity:0;margin-top:max(8px,env(safe-area-inset-top,0px))}
+#ptr.on{opacity:1}#ptr.go{transition:transform .15s}
 </style>
 </head><body>
 
 
+<div id="ptr" role="status" aria-live="polite" hidden></div>
 <div class="wrap">
   <div id="intro" hidden role="dialog" aria-modal="true" aria-label="How the app works"><div class="icard"><div class="itop"><span id="istep"></span><button id="iskip" type="button" class="ghost">Skip</button></div><div class="ibody"><h2 id="ititle"></h2><div id="ivis" class="ivis"></div><p id="itext"></p></div><div class="idots" id="idots"></div><div class="inav"><button id="iback" type="button" class="ghost">Back</button><button id="inext" type="button" class="alt" style="background:#FFD84D">Next</button></div><button id="inever" type="button" class="ghost inever" hidden>Don't show this again</button></div></div>
   <div id="sideBox" hidden role="dialog" aria-modal="true" aria-labelledby="sbh"><div class="lvcard sbcard"><div class="sidehead"><span id="sbh">💡 Your hints</span><button id="sbClose" type="button" class="ghost">Got it</button></div><div id="sbl"></div></div></div>
@@ -249,7 +252,7 @@ header.top{position:relative}
         <p class="copen">Tap to open your course ›</p>
       </div>
       <div class="cnew" aria-label="More courses coming">➕ New course <span>coming soon</span></div>
-      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v92</p>
+      <p class="note" style="opacity:.8;margin:0;text-align:center">Page v93 &middot; Pull down on this screen to refresh</p>
     </section>
     <section id="cmenu" aria-label="Course menu">
       <button id="cBack" type="button" class="ghost">‹ All courses</button>
@@ -494,7 +497,7 @@ header.top{position:relative}
   function openPlayer(n,quiet){
     selected=n;confirmFinish=false;
     $('ptitle').textContent='Lesson '+n+': '+LESSONS[n-1][0];
-    $('frame').src='audio/lesson'+n+'.m4a?v=92';
+    $('frame').src='audio/lesson'+n+'.m4a?v=93';
     $('player').hidden=false;
     setLockScreen(n);
     var f=$('finish');f.hidden=(n!==unlocked);f.textContent='I finished listening';
@@ -834,6 +837,41 @@ header.top{position:relative}
   /* ---- tester reset: add ?reset=1 to the link to clear this phone's chat and minutes ---- */
   try{if(/[?&]reset=1/.test(location.search)){Object.keys(localStorage).forEach(function(k){if(/^(flchat_|fltime_|flpass_)/.test(k))localStorage.removeItem(k)});for(var k in mem){if(/^(flchat_|fltime_|flpass_)/.test(k))delete mem[k]}secs=0;stage='start';qz={a:0,c:0};ex={on:0,k:0,c:0,sched:[],miss:{},stems:{},fin:0};history.replaceState(null,'',location.pathname)}}catch(e){}
   try{if(wantExam){set('flpass_all','1');history.replaceState(null,'',location.pathname)}}catch(e){}
+  /* ---- pull down on Home to refresh (the Home Screen app has no browser refresh) ---- */
+  (function(){
+    var ptr=$('ptr'),y0=null,dy=0,busy=false,LIM=90;
+    function homeOn(){var a=$('app');return a&&!a.hidden&&a.classList.contains('home')&&$('intro').hidden&&$('sideBox').hidden&&$('leaveBox').hidden}
+    function say(t){ptr.textContent=t;ptr.hidden=false}
+    function pos(v){ptr.style.transform='translate(-50%,'+(v-70)+'px)'}
+    function reset(){ptr.classList.add('go');pos(0);ptr.classList.remove('on');setTimeout(function(){ptr.classList.remove('go');ptr.hidden=true;pos(-70)},200)}
+    document.addEventListener('touchstart',function(e){
+      if(busy||e.touches.length!==1||!homeOn()||(window.scrollY||document.documentElement.scrollTop)>0){y0=null;return}
+      y0=e.touches[0].clientY;dy=0;
+    },{passive:true});
+    document.addEventListener('touchmove',function(e){
+      if(y0===null||busy)return;
+      dy=e.touches[0].clientY-y0;
+      if(dy<=8){ptr.classList.remove('on');return}
+      var v=Math.min(dy*0.5,70);
+      say(dy>=LIM?'Release to refresh':'Pull down to refresh');
+      ptr.classList.remove('go');ptr.classList.add('on');pos(v);
+    },{passive:true});
+    document.addEventListener('touchend',function(){
+      if(y0===null||busy){y0=null;return}
+      var go=dy>=LIM;y0=null;dy=0;
+      if(!go){reset();return}
+      busy=true;say('Refreshing...');ptr.classList.add('on','go');pos(40);
+      var done=false;
+      function fail(){if(done)return;done=true;say('No connection. Check wifi and try again.');setTimeout(function(){busy=false;reset()},3000)}
+      var to=setTimeout(fail,8000);
+      fetch(location.pathname,{cache:'reload'}).then(function(r){
+        if(done)return;
+        if(!r.ok)throw 0;
+        done=true;clearTimeout(to);location.reload();
+      }).catch(function(){clearTimeout(to);fail()});
+    },{passive:true});
+    document.addEventListener('touchcancel',function(){y0=null;dy=0;if(!busy)reset()},{passive:true});
+  })();
   /* ---- boot ---- */
   if(code){
     post({code:code,action:'state'}).then(function(r){
