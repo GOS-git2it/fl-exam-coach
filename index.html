@@ -608,10 +608,10 @@ header.top{position:relative}
     var pct=Math.round(100*ex.c/50),ms=[],l;
     for(l in ex.miss)ms.push([l,ex.miss[l]]);
     ms.sort(function(a,b){return b[1]-a[1]||a[0]-b[0]});
-    var t='PRACTICE EXAM DONE: '+ex.c+' of 50 ('+pct+'%).\n'+(ex.c>=40?'You reached the 80% level.':'Not at the 80% level yet.');
+    var t='PRACTICE EXAM DONE: '+ex.c+' of 50 ('+pct+'%).\n'+(ex.c>=40?'You reached the 80% level. You are ready to book your real exam.':'Not at the 80% level yet. That is normal. Re-listen to the lessons below, then take the practice exam again.');
     if(ms.length)t+='\nRe-listen to: '+ms.map(function(m){return 'Lesson '+m[0]+' ('+m[1]+' missed)'}).join(', ')+'.';
     else t+=' Perfect run.';
-    return t+'\nDo not book your retake yet. Tell GiO your score.';
+    return t+(ex.c>=40?'':'\nTap Home, then Practice exam, for a fresh set of 50 questions. Try again when you are ready. You do not need to wait for anyone.');
   }
   function logExam(){
     var ms=[],l;for(l in ex.miss)ms.push([l,ex.miss[l]]);
